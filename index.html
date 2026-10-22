@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<!-- GOEapp · Espacio de Proyectos | index_goeedp_v1.1.0 | 22/10/2026 -->
+<!-- Lee las tarjetas desde goeedp.json (misma carpeta). Campos: nombre, descripcion, link, color, visible -->
+<!-- v1.1.0: favicon SVG embebido + color por nombre (paleta "colores" del JSON) -->
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOEapp · Espacio de Proyectos</title>
+    <!-- Favicon embebido: cuadrado ámbar con grilla 2x2 blanca -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23d97706'/%3E%3Crect x='14' y='14' width='15' height='15' rx='3' fill='%23fff'/%3E%3Crect x='35' y='14' width='15' height='15' rx='3' fill='%23fff'/%3E%3Crect x='14' y='35' width='15' height='15' rx='3' fill='%23fff'/%3E%3Crect x='35' y='35' width='15' height='15' rx='3' fill='%23fff' fill-opacity='.55'/%3E%3C/svg%3E">
+    <meta name="theme-color" content="#d97706">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --c-default: #d97706;   /* color por defecto si la entrada no trae "color" */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── TOPBAR ── */
+        #topbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            height: 48px;
+            padding: 0 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        #topbar .dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--c-default);
+            flex-shrink: 0;
+        }
+        #topbar .title {
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: #0f172a;
+        }
+        #topbar .title .sep { color: #cbd5e1; margin: 0 4px; }
+        #topbar .title .sub { font-weight: 600; color: #475569; }
+        #topbar .version {
+            font-size: 10px;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: .06em;
+            margin-left: 2px;
+        }
+
+        /* ── MAIN ── */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 48px 24px;
+        }
+
+        .eyebrow {
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* ── GRID ── */
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, 260px);   /* centra aunque haya 1 o 2 tarjetas */
+            justify-content: center;
+            max-width: 812px;                                  /* máx. 3 por fila */
+            width: 100%;
+            gap: 16px;
+        }
+
+        /* ── CARD ── (el color de cada tarjeta llega en --c) */
+        .hub-card {
+            --c: var(--c-default);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 22px 20px 20px;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            position: relative;
+            transition: border-color .18s ease, box-shadow .18s ease, transform .15s ease;
+        }
+        .hub-card:hover,
+        .hub-card:focus-visible {
+            border-color: var(--c);
+            box-shadow: 0 4px 20px color-mix(in srgb, var(--c) 14%, transparent);
+            transform: translateY(-2px);
+            outline: none;
+        }
+
+        .card-icon {
+            font-size: 26px;
+            color: var(--c);
+            margin-bottom: 14px;
+            display: block;
+        }
+
+        .card-name {
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .10em;
+            color: #0f172a;
+            margin-bottom: 8px;
+            padding-right: 10px;
+        }
+
+        .card-desc {
+            font-size: 11px;
+            font-weight: 500;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+
+        .card-arrow {
+            position: absolute;
+            bottom: 16px; right: 16px;
+            font-size: 15px;
+            color: var(--c);
+            opacity: 0;
+            transition: opacity .18s ease, transform .18s ease;
+        }
+        .hub-card:hover .card-arrow,
+        .hub-card:focus-visible .card-arrow {
+            opacity: 1;
+            transform: translateX(3px);
+        }
+
+        /* ── ESTADOS (cargando / vacío / error) ── */
+        .estado {
+            max-width: 420px;
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.7;
+        }
+        .estado i { font-size: 28px; display: block; margin-bottom: 10px; color: #cbd5e1; }
+        .estado.error i { color: #dc2626; }
+        .estado b { color: #0f172a; }
+        .estado code {
+            font-size: 11px;
+            background: #e2e8f0;
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: #cbd5e1;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 900px) {
+            .hub-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 560px) {
+            #topbar { padding: 0 16px; }
+            .hub-grid { grid-template-columns: 1fr; width: 100%; }
+            main { padding: 32px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    <div id="topbar">
+        <div class="dot"></div>
+        <span class="title">GOEapp<span class="sep">·</span><span class="sub">Espacio de Proyectos</span></span>
+        <span class="version" id="ver-top">v1.1.0</span>
+    </div>
+
+    <!-- MAIN -->
+    <main>
+        <p class="eyebrow" id="eyebrow">Herramientas disponibles</p>
+        <div id="contenido">
+            <div class="estado"><i class="ti ti-loader-2" aria-hidden="true"></i>Cargando…</div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer id="footer">GOEapp · Espacio de Proyectos &nbsp;·&nbsp; v1.1.0</footer>
+
+    <script>
+        const VERSION   = 'v1.1.0';
+        const JSON_FILE = 'goeedp.json';          // misma carpeta que este HTML
+        const ICONO     = 'ti-layout-grid';       // ícono único para todas las tarjetas
+        const COLOR_DEF = '#d97706';
+
+        const $cont = document.getElementById('contenido');
+        const $eye  = document.getElementById('eyebrow');
+
+        // ── Helpers ──
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+            ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
+        // Acepta true / "TRUE" / "true" / "si" / 1
+        const esVisible = v => v === true || v === 1 ||
+            (typeof v === 'string' && ['true','si','sí','1'].includes(v.trim().toLowerCase()));
+
+        // Paleta base (se usa si el JSON no trae "colores"; la del JSON la amplía o pisa)
+        const PALETA_BASE = {
+            ambar: '#d97706', azul: '#2563eb', celeste: '#0ea5e9', verde: '#16a34a',
+            violeta: '#7c3aed', indigo: '#6366f1', rojo: '#dc2626', naranja: '#ea580c',
+            gris: '#475569', roggio: '#C20F2F'
+        };
+        let PALETA = { ...PALETA_BASE };
+
+        const esHex = c => /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c);
+        // "Ámbar" / "AZUL " → "ambar" / "azul"
+        const normNombre = s => s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+        function cargarPaleta(colores) {
+            if (!colores || typeof colores !== 'object') return;
+            for (const [k, v] of Object.entries(colores)) {
+                if (typeof v === 'string' && esHex(v.trim())) PALETA[normNombre(k)] = v.trim();
+                else console.warn(`[GOEEDP ${VERSION}] Color "${k}" ignorado: "${v}" no es un hex válido`);
+            }
+        }
+
+        // Acepta nombre de la paleta o hex directo; si no, color por defecto
+        const colorOk = c => {
+            if (typeof c !== 'string' || !c.trim()) return COLOR_DEF;
+            const t = c.trim();
+            if (esHex(t)) return t;
+            const hex = PALETA[normNombre(t)];
+            if (hex) return hex;
+            console.warn(`[GOEEDP ${VERSION}] Color "${t}" no está en la paleta → ámbar`);
+            return COLOR_DEF;
+        };
+
+        // Links permitidos: http(s) o relativos. Bloquea javascript:, data:, etc.
+        const linkOk = l => {
+            if (typeof l !== 'string' || !l.trim()) return null;
+            const t = l.trim();
+            if (/^https?:\/\//i.test(t)) return t;
+            if (/^[a-z][a-z0-9+.-]*:/i.test(t)) return null;
+            return t;
+        };
+
+        function mostrarEstado(tipo, icono, html) {
+            $cont.innerHTML = `<div class="estado ${tipo}"><i class="ti ${icono}" aria-hidden="true"></i>${html}</div>`;
+        }
+
+        function render(items) {
+            const visibles = items
+                .filter(it => it && esVisible(it.visible))
+                .map(it => ({ ...it, _link: linkOk(it.link) }))
+                .filter(it => it._link && it.nombre);
+
+            console.log(`[GOEEDP ${VERSION}] ${items.length} entradas en JSON · ${visibles.length} visibles`);
+
+            if (!visibles.length) {
+                $eye.style.display = 'none';
+                mostrarEstado('', 'ti-mood-empty', 'No hay herramientas publicadas por ahora.');
+                return;
+            }
+
+            $cont.className = 'hub-grid';
+            $cont.innerHTML = visibles.map(it => `
+                <a href="${esc(it._link)}" target="_blank" rel="noopener" class="hub-card"
+                   style="--c:${colorOk(it.color)}">
+                    <i class="ti ${ICONO} card-icon" aria-hidden="true"></i>
+                    <div class="card-name">${esc(it.nombre)}</div>
+                    <div class="card-desc">${esc(it.descripcion)}</div>
+                    <i class="ti ti-arrow-right card-arrow" aria-hidden="true"></i>
+                </a>`).join('');
+        }
+
+        async function cargar() {
+            try {
+                // ?t= evita que GitHub Pages / el navegador sirva un JSON viejo
+                const r = await fetch(`${JSON_FILE}?t=${Date.now()}`, { cache: 'no-store' });
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                const data = await r.json();
+                if (!Array.isArray(data)) cargarPaleta(data.colores);
+                const items = Array.isArray(data) ? data : (data.items || []);
+                render(items);
+            } catch (e) {
+                console.error(`[GOEEDP ${VERSION}] Error leyendo ${JSON_FILE}:`, e);
+                $eye.style.display = 'none';
+                const local = location.protocol === 'file:';
+                mostrarEstado('error', 'ti-alert-triangle',
+                    `<b>No se pudo leer <code>${JSON_FILE}</code></b><br>` +
+                    (local
+                        ? 'Estás abriendo el archivo local con doble clic. Publicalo en GitHub Pages o servilo con un servidor local.'
+                        : `Verificá que el archivo exista junto a este HTML y que el JSON sea válido.<br><small>${esc(e.message)}</small>`));
+            }
+        }
+
+        console.log(`[GOEEDP ${VERSION}] Hub iniciado — ` + new Date().toLocaleString('es-AR'));
+        cargar();
+    </script>
+
+</body>
+</html>
