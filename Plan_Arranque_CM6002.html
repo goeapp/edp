@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plan de Arranque CM6002</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: tablero de obra — banda de cabecera COMIN, pestañas por vista, resumen primero; el detalle se despliega por frente. */
+:root{
+  --azul:#0B70B8; --celeste:#2588C1; --rojo:#ED1E3B; --gris:#7A7B7D;
+  --bg:#F4F7FA; --surface:#FFFFFF; --surface-2:#EAF1F7; --line:#D3DEE8;
+  --fg:#14222F; --fg-2:#4D5D6C; --fg-3:#7A8896;
+  --accent:#0B70B8; --accent-2:#2588C1; --accent-soft:#DCEBF7;
+  --ok:#1E8A55; --ok-soft:#DDF2E6; --warn:#B86E00; --warn-soft:#FBEBD0; --crit:#C8102E; --crit-soft:#FADDE2;
+  --rt:#6A4FB0; --rt-soft:#ECE6F8; --comp:#2E8C8C; --comp-soft:#DDF1F1;
+  --receso:rgba(122,123,125,.16);
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow","Segoe UI",Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",Consolas,"Courier New",monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E1620; --surface:#15212D; --surface-2:#1B2A38; --line:#2A3B4C;
+  --fg:#E6EDF4; --fg-2:#A9B7C5; --fg-3:#7D8C9B;
+  --accent:#4FA3E0; --accent-2:#6CB6E8; --accent-soft:#16344D;
+  --ok:#4CC488; --ok-soft:#173A2A; --warn:#E9A23B; --warn-soft:#3D2E14; --crit:#FF5C73; --crit-soft:#47202A;
+  --rt:#A68CF0; --rt-soft:#2C2447; --comp:#5CC6C6; --comp-soft:#173B3D;
+  --receso:rgba(169,183,197,.12); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0E1620; --surface:#15212D; --surface-2:#1B2A38; --line:#2A3B4C;
+  --fg:#E6EDF4; --fg-2:#A9B7C5; --fg-3:#7D8C9B;
+  --accent:#4FA3E0; --accent-2:#6CB6E8; --accent-soft:#16344D;
+  --ok:#4CC488; --ok-soft:#173A2A; --warn:#E9A23B; --warn-soft:#3D2E14; --crit:#FF5C73; --crit-soft:#47202A;
+  --rt:#A68CF0; --rt-soft:#2C2447; --comp:#5CC6C6; --comp-soft:#173B3D;
+  --receso:rgba(169,183,197,.12); color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45;margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--azul)}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1280px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.1}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--fg-2)} .small{font-size:13px}
+
+/* Cabecera */
+.band{background:var(--azul);color:#fff}
+.band .wrap{padding-block:14px 0;display:flex;flex-direction:column;gap:10px}
+.band-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.brand{display:flex;gap:14px;align-items:center}
+.logo{font-family:var(--f-display);font-weight:700;font-size:26px;letter-spacing:.06em;line-height:1;padding:6px 10px;border:2px solid #fff;border-radius:3px}
+.logo span{color:#fff;background:var(--rojo);padding:0 3px;margin-left:2px}
+.band h1{font-size:28px;font-weight:600;letter-spacing:.01em}
+.band .sub{font-size:13px;color:rgba(255,255,255,.82)}
+.band-actions{display:flex;gap:8px;align-items:center}
+.btn{font:inherit;font-size:13px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:6px 10px;cursor:pointer}
+.btn:focus-visible,.tab:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.band .btn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.4);color:#fff}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tab{font-family:var(--f-display);font-size:17px;font-weight:600;letter-spacing:.03em;color:rgba(255,255,255,.78);background:transparent;border:0;padding:8px 14px 10px;border-radius:var(--r) var(--r) 0 0;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--bg);color:var(--fg)}
+
+main{padding-block:20px 40px}
+.view{display:flex;flex-direction:column;gap:20px}
+.view.is-hidden{display:none}
+.section-title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.section-title h2{font-size:24px;font-weight:600}
+.eyebrow{font-family:var(--f-display);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-3);font-weight:600}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+
+/* Resumen */
+.ficha{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.ficha div{background:var(--surface);padding:10px 14px;min-width:0}
+.ficha dt{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-3);font-weight:600}
+.ficha dd{margin:2px 0 0;font-weight:500}
+.cuenta{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.cuenta .panel{display:flex;flex-direction:column;gap:2px}
+.cuenta .n{font-family:var(--f-display);font-size:44px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.cuenta .lbl{font-weight:600}
+.cuenta .panel.crit{border-left:4px solid var(--crit)} .cuenta .panel.warn{border-left:4px solid var(--warn)} .cuenta .panel.acc{border-left:4px solid var(--accent)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
+@media (max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.list li{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.list li:last-child{border-bottom:0}
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:grid;grid-template-columns:120px minmax(0,1fr) 40px;gap:10px;align-items:center;font-size:14px}
+.bar-track{height:12px;background:var(--surface-2);border-radius:3px;overflow:hidden;display:flex}
+.bar-track span{display:block;height:100%}
+
+/* Chips */
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap;line-height:1.6}
+.r-COMIN{background:var(--accent-soft);color:var(--accent)} .r-RT{background:var(--rt-soft);color:var(--rt)} .r-COMP{background:var(--comp-soft);color:var(--comp)}
+.e-Vencido{background:var(--crit-soft);color:var(--crit)} .e-Próximo{background:var(--warn-soft);color:var(--warn)} .e-Pendiente{background:var(--surface-2);color:var(--fg-2)} .e-Hecho{background:var(--ok-soft);color:var(--ok)} .e-En\ curso{background:var(--accent-soft);color:var(--accent)}
+.h-chip{background:transparent;border:1px solid var(--line);color:var(--fg-2)}
+.prop{font-size:11px;color:var(--fg-3);font-style:italic}
+
+/* Plan */
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.filters label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--fg-3);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.filters select,.filters input{font:inherit;font-size:14px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:6px 8px;min-width:0}
+.filters input{width:220px;max-width:100%}
+details.frente{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+details.frente+details.frente{margin-top:8px}
+details.frente>summary{list-style:none;cursor:pointer;padding:12px 14px;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center}
+details.frente>summary::-webkit-details-marker{display:none}
+.fid{font-family:var(--f-mono);font-size:13px;color:var(--fg-3)}
+.fname{font-family:var(--f-display);font-size:19px;font-weight:600}
+.fmeta{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+details.frente[open]>summary{border-bottom:1px solid var(--line)}
+.items{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--fg-3);font-weight:600;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}
+tr:last-child td{border-bottom:0}
+.items table{min-width:860px}
+.it-name{font-weight:600}
+.tareas{margin:4px 0 0;padding-left:18px;font-size:13px;color:var(--fg-2)}
+.tareas li{margin:2px 0}
+.tareas .chip{font-size:11px;padding:0 6px;margin-left:4px}
+.date{font-family:var(--f-mono);font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.src{font-size:12px;color:var(--fg-3);max-width:220px}
+
+/* Línea de tiempo */
+.tl-scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.tl{min-width:1100px;position:relative}
+.tl-row{display:grid;grid-template-columns:230px minmax(0,1fr);border-bottom:1px solid var(--line);min-height:30px}
+.tl-row:last-child{border-bottom:0}
+.tl-lab{padding:6px 10px;font-size:13px;border-right:1px solid var(--line);display:flex;align-items:center;gap:6px;min-width:0}
+.tl-lab.f{font-family:var(--f-display);font-size:16px;font-weight:600;cursor:pointer}
+.tl-lab.i{padding-left:22px;color:var(--fg-2)}
+.tl-track{position:relative}
+.tl-head .tl-track{height:44px}
+.wk{position:absolute;top:0;bottom:0;border-left:1px solid var(--line);font-size:11px;color:var(--fg-3);padding:2px 3px;font-family:var(--f-mono)}
+.mes{position:absolute;top:0;font-family:var(--f-display);font-size:13px;font-weight:600;color:var(--fg-2);padding:2px 4px;letter-spacing:.04em}
+.tl-head .wk{top:22px}
+.tl-bar{position:absolute;top:8px;height:14px;border-radius:3px}
+.tl-bar.f{top:9px;height:12px;background:var(--fg-3);opacity:.55}
+.tl-bar.r-COMIN{background:var(--accent)} .tl-bar.r-RT{background:var(--rt)} .tl-bar.r-COMP{background:var(--comp)}
+.tl-bar.vencido{outline:2px solid var(--crit);outline-offset:1px}
+.tl-dot{position:absolute;top:7px;width:12px;height:12px;transform:translateX(-6px) rotate(45deg);border:2px solid var(--surface)}
+.tl-over{position:absolute;top:0;bottom:0;pointer-events:none}
+.tl-receso{background:var(--receso)}
+.tl-hoy{border-left:2px solid var(--rojo)}
+.tl-meta{border-left:2px dashed var(--fg-2)}
+.leyenda{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--fg-2);align-items:center}
+.sw{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
+
+/* Línea crítica */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpis .panel{padding:12px 14px}
+.kpis .v{font-family:var(--f-display);font-size:30px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.kpis .k{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-3);font-weight:600}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--fg-2);font-family:var(--f-mono);font-size:11px}
+.chart .axis{stroke:var(--line)}
+.ok-txt{color:var(--ok)} .crit-txt{color:var(--crit)} .warn-txt{color:var(--warn)}
+.iwp-table{overflow-x:auto;max-height:520px;overflow-y:auto}
+.iwp-table table{min-width:820px}
+.iwp-table thead th{position:sticky;top:0;background:var(--surface);z-index:1}
+.matrix td,.matrix th{text-align:center}
+.matrix td:first-child,.matrix th:first-child{text-align:left}
+.subtabs{display:flex;gap:6px;flex-wrap:wrap}
+.subtab{font:inherit;font-family:var(--f-display);font-size:16px;font-weight:600;letter-spacing:.02em;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg-2);cursor:pointer}
+.subtab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.subtab:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.subpanel{display:flex;flex-direction:column;gap:16px}
+.subpanel.is-hidden{display:none}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.seg button{font:inherit;font-size:13px;border:0;background:var(--surface);color:var(--fg-2);padding:5px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.num td.n,.num th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+tr.tot td{font-weight:700;border-top:2px solid var(--line)}
+.dif{background:var(--crit-soft)} .dif td:first-child{border-left:3px solid var(--crit)}
+.note{font-size:13px;color:var(--fg-2);border-left:3px solid var(--warn);padding:6px 10px;background:var(--warn-soft);border-radius:0 var(--r) var(--r) 0}
+
+
+/* Supuestos y simulación */
+.sim-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface)}
+.sim-bar.activa{border-color:var(--warn);background:var(--warn-soft)}
+.sim-bar strong{font-family:var(--f-display);font-size:18px;font-weight:600}
+.btn.primario{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:disabled{opacity:.5;cursor:default}
+.bloques{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:960px){.bloques{grid-template-columns:minmax(0,1fr)}}
+.prm{display:grid;grid-template-columns:minmax(0,1fr) 150px auto;gap:6px 10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.prm:last-child{border-bottom:0}
+.prm .lbl{font-weight:500;min-width:0}
+.prm .lbl small{display:block;font-size:12px;color:var(--fg-3);font-weight:400}
+.prm input{font:inherit;font-size:14px;width:100%;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:5px 7px;font-variant-numeric:tabular-nums}
+.prm input.cambiado{border-color:var(--warn);background:var(--warn-soft)}
+.prm .calc{font-family:var(--f-mono);font-size:14px;text-align:right;padding-right:4px}
+.o-Contrato{background:var(--crit-soft);color:var(--crit)} .o-Oferta{background:var(--accent-soft);color:var(--accent)} .o-Supuesto{background:var(--warn-soft);color:var(--warn)} .o-Calculado{background:var(--surface-2);color:var(--fg-2)}
+.rampa-tab td{padding:5px 6px} .rampa-tab input{font:inherit;font-size:14px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:4px 6px;width:100%}
+.rampa-tab input.cambiado{border-color:var(--warn);background:var(--warn-soft)}
+.btn.mini{padding:2px 8px;font-size:12px}
+@media (max-width:560px){.prm{grid-template-columns:minmax(0,1fr) 120px}.prm .chip{grid-column:1/-1;justify-self:start}}
+@media print{.prm input,.rampa-tab input{border:0;background:transparent;padding:0}}
+footer{border-top:1px solid var(--line);padding-block:14px;font-size:12px;color:var(--fg-3)}
+
+@media (max-width:860px){.ficha{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){
+  .ficha{grid-template-columns:minmax(0,1fr)}
+  .band h1{font-size:22px} .list li{grid-template-columns:84px minmax(0,1fr)} .list li .chip{grid-column:2}
+  details.frente>summary{grid-template-columns:44px minmax(0,1fr)} .fmeta{grid-column:1/-1;justify-content:flex-start}
+  .bar-row{grid-template-columns:90px minmax(0,1fr) 34px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Impresión: todo visible, sin controles, resumen primero */
+@media print{
+  @page{size:A4 landscape;margin:12mm}
+  body{background:#fff;color:#000;font-size:11pt}
+  body::before{display:none}
+  .no-print{display:none!important}
+  .view.is-hidden{display:flex!important}
+  .view{break-before:page} .view:first-child{break-before:auto}
+  .band{background:#fff;color:#000;border-bottom:3px solid var(--azul)} .band .sub{color:#333}
+  .logo{border-color:var(--azul);color:var(--azul)}
+  .panel,details.frente,.tl-scroll{border-color:#bbb;break-inside:avoid}
+  .tl-scroll,.items,.iwp-table{overflow:visible;max-height:none}
+  .subpanel.is-hidden{display:flex!important} .subpanel{break-before:page}
+  .tl{min-width:0}
+  details.frente>summary{border-bottom:1px solid #bbb}
+}
+</style>
+</head>
+<body>
+
+<!-- DATOS: este bloque es lo único que reemplaza el generador (esquema plan-arranque/1) -->
+<script type="application/json" id="plan-datos">
+{
+  "esquema": "plan-arranque/1",
+  "control": {"version": "0.3.0", "fecha_corte": "2026-10-21", "autor": "Control de Gestión", "nota": "Datos hardcodeados para validar el visor. Ítems marcados «propuesto» son criterio de obra a validar."},
+  "obra": {"codigo": "COMIN 1329-3", "contrato": "CM6002", "nombre": "Raw Water & Raw Brine Pipelines", "cliente": "Rio Tinto (Rincon Mining)", "ingenieria": "Worley", "contratista": "Consorcio COMIN", "sitio": "Salar del Rincón, Puna salteña (≈ 3.700 m s. n. m.)"},
+  "fechas": {"acuerdo": "2026-10-15", "fin_contrato": "2027-12-15", "horizontes": [90, 180], "tl_desde": "2026-10-12", "tl_hasta": "2027-04-25"},
+  "calendario": {"regimen": "Todos los días, 11 h por jornada, personal rotativo (330 HH por recurso al mes)", "horas_jornada": 11,
+    "paradas": [{"desde": "2026-12-20", "hasta": "2027-01-03", "motivo": "Fiestas de fin de año (15 días; fechas a confirmar)"}]},
+  "responsables": {"COMIN": "COMIN", "RT": "RT / Worley", "COMP": "Compartido"},
+  "hitos": [
+    {"fecha": "2026-10-15", "nombre": "Fecha de acuerdo, inicio y acceso al sitio", "tipo": "contractual", "fuente": "AS Items 1A, 11, 12"},
+    {"fecha": "2026-10-20", "nombre": "Reunión de arranque (KOM) con Worley y RT", "tipo": "plan", "fuente": "Sched. N ítem 1"},
+    {"fecha": "2026-10-29", "nombre": "Vencen 10 días hábiles: cauciones, seguros, Programa P6", "tipo": "contractual", "fuente": "57.1 · Sched. N ítems 3–7"},
+    {"fecha": "2026-11-16", "nombre": "Primeros IWP piloto liberados", "tipo": "plan", "fuente": "Propuesto (AWP: 2 semanas antes)"},
+    {"fecha": "2026-11-23", "nombre": "Movilización al sitio", "tipo": "plan", "fuente": "Propuesto"},
+    {"fecha": "2026-11-30", "nombre": "Arranque de la línea HDPE 800 (piloto)", "tipo": "plan", "fuente": "Acordado 20-oct"},
+    {"fecha": "2027-01-13", "nombre": "Fin del horizonte de 90 días", "tipo": "plan", "fuente": "Acuerdo + 90 días"},
+    {"fecha": "2027-03-10", "nombre": "Fin de termofusión de la línea HDPE 800", "tipo": "plan", "fuente": "Propuesto (deja 15 días a pruebas)"},
+    {"fecha": "2027-03-25", "nombre": "Fin 1101 RAW BRINE HDPE 800mm PIPELINES", "tipo": "objetivo", "fuente": "Schedule G · pág. 529"},
+    {"fecha": "2027-04-13", "nombre": "Fin del horizonte de 180 días", "tipo": "plan", "fuente": "Acuerdo + 180 días"},
+    {"fecha": "2027-07-31", "nombre": "Hito 1 con multa: 1101 Raw Brine Wells", "tipo": "contractual", "fuente": "AS Item 13B · pág. 8"}
+  ],
+  "frentes": [
+    {"id": "F01", "nombre": "Contractual y administrativo", "items": [
+      {"id": "F01.1", "nombre": "Cauciones de anticipo y de cumplimiento", "resp": "COMIN", "inicio": "2026-10-15", "fin": "2026-10-29", "fuente": "57.1 · págs. 90–91", "tareas": [
+        {"nombre": "Cotizar con el broker de seguros de RT", "resp": "COMP"}, {"nombre": "Confirmar si se exige A.M. Best «A» (I-35)", "resp": "RT"},
+        {"nombre": "Certificar y legalizar ante escribano", "resp": "COMIN"}, {"nombre": "Presentar y obtener aceptación", "resp": "COMP"}]},
+      {"id": "F01.2", "nombre": "Certificados de cobertura de seguros (AS Item 18)", "resp": "COMIN", "inicio": "2026-10-15", "fin": "2026-10-29", "fuente": "16.3(e) · Sched. N ítem 3", "tareas": [
+        {"nombre": "RC USD 10 M, vida + ART, equipos, tránsito, automotores", "resp": "COMIN"}, {"nombre": "Confirmar alcance y franquicias del seguro de bienes (I-37)", "resp": "RT"}]},
+      {"id": "F01.3", "nombre": "Aclarar el «Banker's Undertaking»", "resp": "COMP", "inicio": "2026-10-20", "fin": "2026-10-29", "fuente": "Sched. N ítem 4 (I-33)", "tareas": []},
+      {"id": "F01.4", "nombre": "Enviar consultas de inconsistencias a RT", "resp": "COMIN", "inicio": "2026-10-20", "fin": "2026-10-30", "fuente": "SC cl. 1 (aviso inmediato de ambigüedades)", "tareas": [
+        {"nombre": "Prioridad: I-01, I-06, I-09, I-16, I-20, I-28, I-35", "resp": "COMIN"}, {"nombre": "Respuestas y registro en el XLSX de inconsistencias", "resp": "RT"}]},
+      {"id": "F01.5", "nombre": "Factura y cobro del anticipo (20 %)", "resp": "COMP", "inicio": "2026-10-29", "fin": "2026-12-04", "fuente": "14.2 · pág. 48", "tareas": [
+        {"nombre": "Emitir factura correcta tras la caución", "resp": "COMIN"}, {"nombre": "Pago a 30 días de la factura", "resp": "RT"}]},
+      {"id": "F01.6", "nombre": "Primer certificado mensual (noviembre)", "resp": "COMIN", "inicio": "2026-11-30", "fin": "2026-12-07", "fuente": "14.3 (5 días hábiles) · AS Item 16", "tareas": []},
+      {"id": "F01.7", "nombre": "Registro de avisos contractuales", "resp": "COMIN", "inicio": "2026-10-15", "fin": "2027-04-13", "fuente": "9.3 · 51 · 23.2", "tareas": [
+        {"nombre": "Variación: aviso 2 días, propuesta 10 días hábiles", "resp": "COMIN"}, {"nombre": "Extensión de plazo: aviso 2 días hábiles, reclamo 10", "resp": "COMIN"}]}
+    ]},
+    {"id": "F02", "nombre": "Organización", "items": [
+      {"id": "F02.1", "nombre": "Organigrama de obra", "resp": "COMIN", "inicio": "2026-10-20", "fin": "2026-11-06", "fuente": "Propuesto", "propuesto": true, "tareas": []},
+      {"id": "F02.2", "nombre": "Personal clave del Schedule E presentado y aprobado", "resp": "COMP", "inicio": "2026-10-20", "fin": "2026-11-13", "fuente": "Schedule E (I-19)", "tareas": [
+        {"nombre": "Validar experiencia exigida", "resp": "COMIN"}, {"nombre": "Aprobación", "resp": "RT"}]},
+      {"id": "F02.3", "nombre": "Matriz de responsabilidades COMIN – RT – Worley", "resp": "COMP", "inicio": "2026-10-20", "fin": "2026-11-06", "fuente": "Propuesto (seguimiento del KOM)", "propuesto": true, "tareas": []}
+    ]},
+    {"id": "F03", "nombre": "Búsqueda de personal", "items": [
+      {"id": "F03.1", "nombre": "Plan de dotación quincenal (histograma)", "resp": "COMIN", "inicio": "2026-10-20", "fin": "2026-11-06", "fuente": "Schedule C · propuesto", "propuesto": true, "tareas": []},
+      {"id": "F03.2", "nombre": "Indirectos: supervisión, calidad, HSE, oficina técnica, planner O3", "resp": "COMIN", "inicio": "2026-10-20", "fin": "2026-11-16", "fuente": "Propuesto", "propuesto": true, "tareas": []},
+      {"id": "F03.3", "nombre": "Directos para 2 cuadrillas (16 personas + soldadores)", "resp": "COMIN", "inicio": "2026-10-26", "fin": "2026-11-23", "fuente": "APU A.2.1.22.1 · pág. 579", "tareas": []},
+      {"id": "F03.4", "nombre": "Directos hasta 6 cuadrillas (48 personas)", "resp": "COMIN", "inicio": "2026-11-23", "fin": "2027-01-15", "fuente": "Rampa acordada 20-oct", "tareas": []},
+      {"id": "F03.5", "nombre": "Contenido local Salta (60–70 % del personal)", "resp": "COMIN", "inicio": "2026-10-20", "fin": "2027-04-13", "fuente": "Ley Salta 8164 · cl. 17", "tareas": []}
+    ]},
+    {"id": "F04", "nombre": "Relaciones laborales", "items": [
+      {"id": "F04.1", "nombre": "Adhesión al Acuerdo UOCRA Rincón y su adenda", "resp": "COMIN", "inicio": "2026-10-20", "fin": "2026-11-16", "fuente": "Appendix B", "tareas": []},
+      {"id": "F04.2", "nombre": "Plan de relaciones laborales (ERMP)", "resp": "COMP", "inicio": "2026-10-20", "fin": "2026-10-26", "fuente": "Sched. N ítem 14 (4 semanas antes de movilizar)", "tareas": [
+        {"nombre": "Elaborar", "resp": "COMIN"}, {"nombre": "Aprobar", "resp": "RT"}]}
+    ]},
+    {"id": "F05", "nombre": "HSE y acceso al sitio", "items": [
+      {"id": "F05.1", "nombre": "Planes HSEC aprobados", "resp": "COMP", "inicio": "2026-10-20", "fin": "2026-10-26", "fuente": "cl. 62 · AS Item 16 · Appendix C", "tareas": [
+        {"nombre": "Elaborar", "resp": "COMIN"}, {"nombre": "Aprobar", "resp": "RT"}]},
+      {"id": "F05.2", "nombre": "Aptos médicos y requisitos de ingreso", "resp": "COMIN", "inicio": "2026-10-26", "fin": "2026-11-20", "fuente": "SDDI (requisitos de ingreso) · Appendix A", "tareas": []},
+      {"id": "F05.3", "nombre": "Inducciones de RT", "resp": "COMP", "inicio": "2026-11-16", "fin": "2026-11-23", "fuente": "Appendix C", "tareas": [
+        {"nombre": "Dictar", "resp": "RT"}, {"nombre": "Asistir con toda la dotación", "resp": "COMIN"}]},
+      {"id": "F05.4", "nombre": "Matriz de EPP (altura, frío, radiación UV)", "resp": "COMIN", "inicio": "2026-10-20", "fin": "2026-11-06", "fuente": "Propuesto", "propuesto": true, "tareas": []},
+      {"id": "F05.5", "nombre": "Permisos de trabajo por IWP", "resp": "COMP", "inicio": "2026-11-16", "fin": "2027-03-25", "fuente": "Appendix C", "tareas": [
+        {"nombre": "Solicitar", "resp": "COMIN"}, {"nombre": "Emitir", "resp": "RT"}]}
+    ]},
+    {"id": "F06", "nombre": "Movilización, logística y obrador", "items": [
+      {"id": "F06.1", "nombre": "Plan de movilización", "resp": "COMIN", "inicio": "2026-10-20", "fin": "2026-11-06", "fuente": "Schedule A.2.1.1 · pág. 428", "tareas": []},
+      {"id": "F06.2", "nombre": "Planes de gestión de obra (Construction y Project Specific)", "resp": "COMIN", "inicio": "2026-10-20", "fin": "2026-10-26", "fuente": "Sched. N ítems 11–12 (4 semanas antes de movilizar)", "tareas": []},
+      {"id": "F06.3", "nombre": "Cupos de alojamiento, comida y traslado Salta–obra", "resp": "COMP", "inicio": "2026-10-20", "fin": "2026-11-06", "fuente": "Schedule Q · pág. 555", "tareas": [
+        {"nombre": "Pedir según dotación", "resp": "COMIN"}, {"nombre": "Proveer según Programa aprobado", "resp": "RT"}]},
+      {"id": "F06.4", "nombre": "Obrador: contenedores, generadores, pañol", "resp": "COMIN", "inicio": "2026-11-09", "fin": "2026-11-27", "fuente": "Schedule A.2.1 · págs. 426–429", "tareas": []},
+      {"id": "F06.5", "nombre": "Traslado de equipos al sitio (≈ 270 km desde Salta)", "resp": "COMIN", "inicio": "2026-11-16", "fin": "2026-11-27", "fuente": "AS Item 12", "tareas": []}
+    ]},
+    {"id": "F07", "nombre": "Servicios generales y limpieza", "items": [
+      {"id": "F07.1", "nombre": "Agua potable, comida y asistencia médica", "resp": "RT", "inicio": "2026-11-23", "fin": "2027-04-13", "fuente": "Schedule Q · pág. 555", "tareas": []},
+      {"id": "F07.2", "nombre": "Baños químicos con proveedor aprobado", "resp": "COMIN", "inicio": "2026-11-09", "fin": "2026-11-23", "fuente": "Schedule Q · pág. 556", "tareas": []},
+      {"id": "F07.3", "nombre": "Limpieza y residuos (RT dispone los no peligrosos)", "resp": "COMP", "inicio": "2026-11-23", "fin": "2027-04-13", "fuente": "Schedule Q · pág. 555", "tareas": []},
+      {"id": "F07.4", "nombre": "Combustible: camión distribuidor propio", "resp": "COMP", "inicio": "2026-11-16", "fin": "2026-11-27", "fuente": "Schedule Q · pág. 555", "tareas": [
+        {"nombre": "Provee el combustible en el campamento", "resp": "RT"}, {"nombre": "Camión y distribución a equipos", "resp": "COMIN"}]}
+    ]},
+    {"id": "F08", "nombre": "Compras", "items": [
+      {"id": "F08.1", "nombre": "Consumibles de termofusión y prueba hidráulica (spools, bridas ciegas)", "resp": "COMIN", "inicio": "2026-10-26", "fin": "2026-11-20", "fuente": "PID A.2.1.22.1 · pág. 651", "tareas": []},
+      {"id": "F08.2", "nombre": "Camisa HDPE corrugada para cruces de vía", "resp": "COMIN", "inicio": "2026-10-26", "fin": "2026-11-20", "fuente": "PID A.2.1.22.2 · pág. 652", "tareas": []},
+      {"id": "F08.3", "nombre": "Herramientas", "resp": "COMIN", "inicio": "2026-10-26", "fin": "2026-11-20", "fuente": "Propuesto", "propuesto": true, "tareas": []},
+      {"id": "F08.4", "nombre": "EPP para 2, 4 y 6 cuadrillas", "resp": "COMIN", "inicio": "2026-10-26", "fin": "2027-01-11", "fuente": "Matriz F05.4", "tareas": []},
+      {"id": "F08.5", "nombre": "Compras locales Salta (70 %)", "resp": "COMIN", "inicio": "2026-10-20", "fin": "2027-04-13", "fuente": "Ley Salta 8164 · cl. 17", "tareas": []}
+    ]},
+    {"id": "F09", "nombre": "Almacén", "items": [
+      {"id": "F09.1", "nombre": "Almacén y pañol en el obrador", "resp": "COMIN", "inicio": "2026-11-16", "fin": "2026-11-27", "fuente": "Propuesto", "propuesto": true, "tareas": []},
+      {"id": "F09.2", "nombre": "Procedimiento de recepción de materiales de RT", "resp": "COMP", "inicio": "2026-10-26", "fin": "2026-11-20", "fuente": "PID A.2.1.22.1 (verificación y certificados)", "tareas": []},
+      {"id": "F09.3", "nombre": "Acopio y distribución de caños a lo largo de la traza", "resp": "COMIN", "inicio": "2026-11-23", "fin": "2027-02-26", "fuente": "PID A.2.1.22.1 · Q&A N° 36 (acarreo ≤ 5 km)", "tareas": []}
+    ]},
+    {"id": "F10", "nombre": "Equipos", "items": [
+      {"id": "F10.1", "nombre": "Termofusoras para 800 mm: 2 → 4 → 6", "resp": "COMIN", "inicio": "2026-10-26", "fin": "2027-01-15", "fuente": "APU EQ.014 · pág. 579", "tareas": [
+        {"nombre": "2 en sitio al 27-nov", "resp": "COMIN"}, {"nombre": "4 al 11-dic", "resp": "COMIN"}, {"nombre": "6 al 15-ene", "resp": "COMIN"}]},
+      {"id": "F10.2", "nombre": "Excavadoras, hidrogrúa 17,5 t, manipulador telescópico, camiones", "resp": "COMIN", "inicio": "2026-10-26", "fin": "2026-11-27", "fuente": "APU A.2.1.22.1 · pág. 579", "tareas": []},
+      {"id": "F10.3", "nombre": "Certificación y habilitación de equipos", "resp": "COMP", "inicio": "2026-11-16", "fin": "2026-11-27", "fuente": "A.2.1.1 (40 % de movilización) · Appendix A", "tareas": [
+        {"nombre": "Certificar", "resp": "COMIN"}, {"nombre": "Aprobar", "resp": "RT"}]},
+      {"id": "F10.4", "nombre": "Equipos de prueba hidráulica y camiones cisterna", "resp": "COMIN", "inicio": "2026-11-23", "fin": "2026-12-14", "fuente": "APU EQ.013 · Q&A N° 196", "tareas": []}
+    ]},
+    {"id": "F11", "nombre": "Materiales de RT", "items": [
+      {"id": "F11.1", "nombre": "Fechas de materiales necesarios en sitio, en el Programa", "resp": "COMIN", "inicio": "2026-10-20", "fin": "2026-10-29", "fuente": "Schedule G ítem 2(f) · Schedule Q sin fechas", "tareas": []},
+      {"id": "F11.2", "nombre": "Puntos de traspaso y acopio de RT", "resp": "COMP", "inicio": "2026-10-20", "fin": "2026-11-06", "fuente": "AS Item 18 (bienes en tránsito)", "tareas": []},
+      {"id": "F11.3", "nombre": "1.ª entrega de caños 800 para el piloto (≈ 2.000 m)", "resp": "RT", "inicio": "2026-11-09", "fin": "2026-11-23", "fuente": "Q&A N° 63 · cálculo de rampa", "tareas": []},
+      {"id": "F11.4", "nombre": "Entregas para producción (≈ 12.000 m)", "resp": "RT", "inicio": "2026-12-01", "fin": "2027-02-01", "fuente": "Q&A N° 63 · cálculo de rampa", "tareas": []}
+    ]},
+    {"id": "F12", "nombre": "Planificación AWP (P6, O3, CWP, IWP)", "items": [
+      {"id": "F12.1", "nombre": "Programa inicial de 20 días", "resp": "COMIN", "inicio": "2026-10-15", "fin": "2026-10-20", "fuente": "Sched. N ítem 1 (en el KOM)", "tareas": []},
+      {"id": "F12.2", "nombre": "Programa en Primavera P6 (formato nativo)", "resp": "COMIN", "inicio": "2026-10-15", "fin": "2026-10-29", "fuente": "Sched. N ítem 7 · Schedule G ítem 2 · cl. 42", "tareas": []},
+      {"id": "F12.3", "nombre": "Pedir requisitos de Workface Planning (D-PLN-00037)", "resp": "RT", "inicio": "2026-10-20", "fin": "2026-10-23", "fuente": "SDDI Rev1 (no recibido)", "tareas": []},
+      {"id": "F12.4", "nombre": "Alta en O3 y criterios de avance", "resp": "COMP", "inicio": "2026-10-20", "fin": "2026-11-13", "fuente": "SOW · Appendix D", "tareas": []},
+      {"id": "F12.5", "nombre": "CWP de las líneas A y B (HDPE 800)", "resp": "COMP", "inicio": "2026-10-26", "fin": "2026-11-13", "fuente": "Propuesto (≈ 17.200 HH cada uno)", "propuesto": true, "tareas": []},
+      {"id": "F12.6", "nombre": "Look-ahead semanal de 3 semanas y reunión con Worley", "resp": "COMP", "inicio": "2026-11-16", "fin": "2027-04-13", "fuente": "Appendix D", "tareas": []}
+    ]},
+    {"id": "F13", "nombre": "Calidad y documentación (PIE, InEight)", "items": [
+      {"id": "F13.1", "nombre": "Plan de calidad del proyecto (PQMP)", "resp": "COMIN", "inicio": "2026-10-20", "fin": "2026-11-12", "fuente": "Sched. N ítem 10 (4 semanas) · Appendix I", "tareas": []},
+      {"id": "F13.2", "nombre": "PIE de la línea HDPE", "resp": "COMP", "inicio": "2026-10-26", "fin": "2026-11-20", "fuente": "Appendix I", "tareas": [
+        {"nombre": "Elaborar", "resp": "COMIN"}, {"nombre": "Aprobar", "resp": "RT"}]},
+      {"id": "F13.3", "nombre": "Alta en InEight y flujo documental ES/EN", "resp": "COMP", "inicio": "2026-10-20", "fin": "2026-11-06", "fuente": "Schedule N · SOW", "tareas": []}
+    ]},
+    {"id": "F14", "nombre": "Comunicaciones", "items": [
+      {"id": "F14.1", "nombre": "Radios y frecuencias de obra", "resp": "COMP", "inicio": "2026-11-02", "fin": "2026-11-20", "fuente": "Appendix A · propuesto", "propuesto": true, "tareas": []},
+      {"id": "F14.2", "nombre": "Internet en el obrador", "resp": "COMIN", "inicio": "2026-11-09", "fin": "2026-11-27", "fuente": "Propuesto", "propuesto": true, "tareas": []},
+      {"id": "F14.3", "nombre": "Reportes diario, semanal y mensual", "resp": "COMIN", "inicio": "2026-11-23", "fin": "2027-04-13", "fuente": "Appendix D · 14.3(a)(iii)", "tareas": []}
+    ]},
+    {"id": "F15", "nombre": "Capacitación", "items": [
+      {"id": "F15.1", "nombre": "Calificación de soldadores de termofusión", "resp": "COMP", "inicio": "2026-11-09", "fin": "2026-11-27", "fuente": "Appendix I · propuesto", "tareas": [
+        {"nombre": "Capacitar y presentar", "resp": "COMIN"}, {"nombre": "Validar", "resp": "RT"}]},
+      {"id": "F15.2", "nombre": "AWP y O3 para supervisores y capataces", "resp": "COMIN", "inicio": "2026-11-02", "fin": "2026-11-20", "fuente": "Propuesto", "propuesto": true, "tareas": []},
+      {"id": "F15.3", "nombre": "Trabajo en altura geográfica (Puna)", "resp": "COMIN", "inicio": "2026-11-09", "fin": "2026-11-23", "fuente": "Appendix C · propuesto", "propuesto": true, "tareas": []}
+    ]},
+    {"id": "F16", "nombre": "Línea HDPE 800 (1101 RAW BRINE HDPE 800mm PIPELINES)", "items": [
+      {"id": "F16.1", "nombre": "Liberación de la traza", "resp": "COMP", "inicio": "2026-10-20", "fin": "2026-11-16", "fuente": "cl. 60.2 · SDDI", "tareas": [
+        {"nombre": "Planos IFC del trazado y de los cruces", "resp": "RT"}, {"nombre": "Replanteo topográfico", "resp": "COMIN"}, {"nombre": "Permiso de área / liberación de la traza", "resp": "RT"}]},
+      {"id": "F16.2", "nombre": "Procedimientos y PIE aprobados", "resp": "COMP", "inicio": "2026-10-26", "fin": "2026-11-20", "fuente": "Appendix I · PID A.2.1.22.1", "tareas": [
+        {"nombre": "Procedimiento de termofusión", "resp": "COMIN"}, {"nombre": "Procedimiento de prueba hidráulica y manejo del agua", "resp": "COMIN"}, {"nombre": "Aprobación", "resp": "RT"}]},
+      {"id": "F16.3", "nombre": "Recursos: cuadrillas, soldadores y equipos", "resp": "COMIN", "inicio": "2026-10-26", "fin": "2027-01-15", "fuente": "APU · pág. 579 · rampa 2 → 4 → 6", "tareas": [
+        {"nombre": "2 cuadrillas al 27-nov", "resp": "COMIN"}, {"nombre": "4 cuadrillas al 11-dic", "resp": "COMIN"}, {"nombre": "6 cuadrillas al 15-ene", "resp": "COMIN"}, {"nombre": "Máquinas según la vista Línea HDPE 800 › Recursos (termofusión 800: más que la oferta)", "resp": "COMIN"}]},
+      {"id": "F16.4", "nombre": "AWP: CWP e IWP liberados con 2 semanas de anticipación", "resp": "COMP", "inicio": "2026-11-02", "fin": "2027-02-24", "fuente": "Ver vista Línea HDPE", "tareas": []},
+      {"id": "F16.5", "nombre": "Piloto: termofusión, primer tramo y cruces de vía", "resp": "COMIN", "inicio": "2026-11-30", "fin": "2026-12-19", "fuente": "Acordado 20-oct", "tareas": [
+        {"nombre": "Primer tramo brida a brida (198 m) con prueba hidráulica", "resp": "COMIN"}, {"nombre": "Cruces de vía X1 y X2", "resp": "COMIN"}]},
+      {"id": "F16.6", "nombre": "Producción: tendido, termofusión, bridas y anclajes", "resp": "COMIN", "inicio": "2027-01-04", "fin": "2027-03-10", "fuente": "PID A.2.1.22.1 · Q&A N° 36 (anclaje cada 38 m, a aclarar)", "tareas": [
+        {"nombre": "Aclarar anclajes: cada 38 m (Q&A 36) o ≈ 200 m (PID)", "resp": "RT"}, {"nombre": "Cruces de vía X3 y X4", "resp": "COMIN"}]},
+      {"id": "F16.7", "nombre": "Pruebas hidráulicas, precomisionado y entrega", "resp": "COMIN", "inicio": "2026-12-14", "fin": "2027-03-25", "fuente": "Q&A N° 24 (10,25 bar, cada tramo de 198 m) · Q&A N° 196 (agua a ≈ 5 km)", "tareas": [
+        {"nombre": "Prueba hidráulica por tramo de 198 m y precomisionado por IWP en Smart Completion", "resp": "COMIN"},
+        {"nombre": "Punto de disposición del agua", "resp": "RT"}, {"nombre": "Dossier de precomisionado", "resp": "COMIN"}]}
+    ]}
+  ],
+  "linea_critica": {
+    "frente": "F16", "nombre": "1101 RAW BRINE HDPE 800mm PIPELINES",
+    "inicio": "2026-11-30", "fin_produccion": "2027-03-10", "fin_objetivo": "2027-03-25",
+    "metros": 14000, "hh_total": 34487, "personas_cuadrilla": 8, "tramo_m": 198,
+    "fuente": "Schedule A.2 A.2.1.22.1 · pág. 442 · APU pág. 579",
+    "cano_m": 18,
+    "uniones": {"tipo_cano": "Termofusión a tope", "ef_por_brida": 2, "fuente": "Q&A N° 95 · pág. 406 (confirmada por N° 197 · pág. 411)"},
+    "pruebas": {"ph_bar": 10.25, "ph_bar_pex": 10.88, "liberacion": "Entre tramos bridados cada 198 m", "di_mm": 705.9, "dias_a_prueba": 2, "dias_a_precom": 2, "disposicion_km": 5,
+      "fuente": "Q&A N° 24 · pág. 401 (presión y tramo) · Q&A N° 196 · pág. 411 (agua a ≈ 5 km) · DI = 800 − 2 × 800/17 (SDR 17)",
+      "precom": "Precomisionado por IWP, cargado en Smart Completion (SOW · pág. 128)"},
+    "maquinas": [
+      {"id": "TF800", "nombre": "Termofusión 800 mm", "coef": 1, "origen": "Supuesto", "base": "1 por cuadrilla", "oferta": 3},
+      {"id": "EF", "nombre": "Electrofusión EF-8000 (stub ends)", "coef": 0.3334, "origen": "Supuesto", "base": "1 cada 3 cuadrillas (≈ 0,4 EF por día y cuadrilla)", "oferta": 3},
+      {"id": "PH", "nombre": "Equipo de prueba hidráulica", "coef": 0.7453, "origen": "Oferta", "base": "coef. APU por cuadrilla", "oferta": 0, "nota": "Schedule F no lo lista; solo 1 camión cisterna para agua y PH"},
+      {"id": "SKY", "nombre": "Manipulador telescópico Sky Trak", "coef": 1.0394, "origen": "Oferta", "base": "coef. APU por cuadrilla", "oferta": 3},
+      {"id": "GRU", "nombre": "Camión grúa 17,5 t", "coef": 0.5902, "origen": "Oferta", "base": "coef. APU por cuadrilla", "oferta": 3},
+      {"id": "PC2", "nombre": "Excavadora PC200", "coef": 0.4148, "origen": "Oferta", "base": "coef. APU por cuadrilla", "oferta": 1},
+      {"id": "PC3", "nombre": "Excavadora PC300", "coef": 0.3595, "origen": "Oferta", "base": "coef. APU por cuadrilla", "oferta": 2},
+      {"id": "VOL", "nombre": "Camión volcador", "coef": 0.7466, "origen": "Oferta", "base": "coef. APU por cuadrilla", "oferta": 2}],
+    "maquinas_fuente": "Necesarias: cuadrillas × coeficiente. Oferta: Schedule F, Tabla F.1 · págs. 526–528 (equipos de todo el contrato, no solo de la línea)",
+    "lineas": [{"id": "A", "nombre": "Línea A", "metros": 7000}, {"id": "B", "nombre": "Línea B", "metros": 7000}],
+    "cwp_prefijo": "CWP-1101-HDPE", "iwp_prefijo": "IWP-1101-HDPE",
+    "iwp": {"piloto_tramos": 1, "produccion_tramos": 2, "piloto_hasta": "2026-12-19", "liberar_dias_antes": 14},
+    "cuadrilla_tipo": {"fuente": "APU A.2.1.22.1 · pág. 579 (coeficientes «Cuadrilla» del APU)",
+      "roles": [{"rol": "Oficial especializado", "cant": 0.8889}, {"rol": "Oficial especializado soldador", "cant": 1.7778}, {"rol": "Oficial montador cañista", "cant": 0.8889}, {"rol": "Oficial", "cant": 2.6667}, {"rol": "Ayudante", "cant": 1.7778}],
+      "equipos": [{"eq": "Excavadora PC200", "cant": 0.4148, "u": "hm"}, {"eq": "Excavadora PC300", "cant": 0.3595, "u": "hm"}, {"eq": "Camión volcador", "cant": 0.7466, "u": "hm"}, {"eq": "Hidrogrúa / camión grúa 17,5 t", "cant": 0.5902, "u": "hm"}, {"eq": "Vibro pata de cabra", "cant": 0.0998, "u": "hm"}, {"eq": "Manipulador telescópico Sky Trak", "cant": 1.0394, "u": "hm"}, {"eq": "Equipo de prueba hidráulica", "cant": 0.7453, "u": "hh"}, {"eq": "Equipo de termofusión / electrofusión", "cant": 5.8785, "u": "hh"}]},
+    "medicion": [{"etapa": "Tendido en el sitio de instalación", "pct": 20, "fuente": "PID A.2.1.22.1 · pág. 651"}, {"etapa": "Termofusión / bridado de la tubería instalada", "pct": 50, "fuente": "PID A.2.1.22.1 · pág. 652"}, {"etapa": "Pruebas y precomisionado (resto)", "pct": 30, "fuente": "PID · pág. 652 (a verificar)"}],
+    "cruces_rendimiento": {"ea_dia": 0.2007, "hh_total": 1315, "cantidad": 4, "fuente": "APU A.2.1.22.2 · pág. 579"},
+    "origen": {"cano_m": "Contrato", "pruebas": "Contrato", "dias_pruebas": "Supuesto", "horas_jornada": "Supuesto", "parada": "Supuesto", "inicio": "Supuesto", "fin_produccion": "Supuesto", "fin_objetivo": "Contrato", "metros": "Oferta", "hh_total": "Oferta", "personas_cuadrilla": "Oferta", "tramo_m": "Contrato", "rampa": "Supuesto", "iwp": "Supuesto", "medicion": "Oferta", "cruces": "Oferta"},
+    "rampa": [{"desde": "2026-11-30", "cuadrillas": 2}, {"desde": "2026-12-14", "cuadrillas": 4}, {"desde": "2027-01-04", "cuadrillas": 4}, {"desde": "2027-01-18", "cuadrillas": 6}],
+    "cruces": [
+      {"id": "X1", "nombre": "Cruce de vía 1", "inicio": "2026-12-01", "fin": "2026-12-06", "hh": 329},
+      {"id": "X2", "nombre": "Cruce de vía 2", "inicio": "2026-12-08", "fin": "2026-12-13", "hh": 329},
+      {"id": "X3", "nombre": "Cruce de vía 3", "inicio": "2027-01-11", "fin": "2027-01-16", "hh": 329},
+      {"id": "X4", "nombre": "Cruce de vía 4", "inicio": "2027-01-18", "fin": "2027-01-23", "hh": 328}],
+    "restricciones": [
+      {"id": "IFC", "nombre": "Planos IFC del tramo", "resp": "RT"},
+      {"id": "MAT", "nombre": "Caños y accesorios en sitio", "resp": "RT"},
+      {"id": "TRZ", "nombre": "Liberación de la traza / permiso de área", "resp": "RT"},
+      {"id": "PRC", "nombre": "Procedimientos y PIE aprobados", "resp": "COMP"},
+      {"id": "TOP", "nombre": "Topografía y replanteo", "resp": "COMIN"},
+      {"id": "REC", "nombre": "Personal habilitado y equipos certificados", "resp": "COMIN"},
+      {"id": "PTW", "nombre": "Permiso de trabajo (HSE)", "resp": "COMP"}]
+  }
+}
+</script>
+
+<header class="band">
+  <div class="wrap">
+    <div class="band-top">
+      <div class="brand">
+        <div class="logo" aria-label="COMIN">COMIN<span>&nbsp;</span></div>
+        <div>
+          <h1 id="titulo">Plan de Arranque CM6002</h1>
+          <div class="sub" id="subtitulo"></div>
+        </div>
+      </div>
+      <div class="band-actions no-print">
+        <button class="btn" id="btn-tema" type="button" aria-label="Cambiar tema">Tema: sistema</button>
+      </div>
+    </div>
+    <nav class="tabs no-print" role="tablist" aria-label="Vistas">
+      <button class="tab" role="tab" data-view="resumen" id="tab-resumen" type="button">Resumen</button>
+      <button class="tab" role="tab" data-view="plan" id="tab-plan" type="button">Plan en 3 niveles</button>
+      <button class="tab" role="tab" data-view="tiempo" id="tab-tiempo" type="button">Línea de tiempo</button>
+      <button class="tab" role="tab" data-view="linea" id="tab-linea" type="button">Línea HDPE 800</button>
+      <button class="tab" role="tab" data-view="supuestos" id="tab-supuestos" type="button">Supuestos y simulación</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="view" id="v-resumen" aria-labelledby="tab-resumen"></section>
+  <section class="view is-hidden" id="v-plan" aria-labelledby="tab-plan"></section>
+  <section class="view is-hidden" id="v-tiempo" aria-labelledby="tab-tiempo"></section>
+  <section class="view is-hidden" id="v-linea" aria-labelledby="tab-linea"></section>
+  <section class="view is-hidden" id="v-supuestos" aria-labelledby="tab-supuestos"></section>
+</main>
+<footer><div class="wrap" id="pie"></div></footer>
+
+<script>
+(function(){
+"use strict";
+const D = JSON.parse(document.getElementById("plan-datos").textContent);
+const $ = (s, el=document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const DAY = 86400000;
+const toD = s => { const [y,m,d] = s.split("-").map(Number); return new Date(Date.UTC(y, m-1, d)); };
+const iso = d => d.toISOString().slice(0,10);
+const add = (d, n) => new Date(d.getTime() + n*DAY);
+const diff = (a, b) => Math.round((b - a)/DAY);
+const MES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const fmt = d => { if (typeof d === "string") d = toD(d); return String(d.getUTCDate()).padStart(2,"0") + "-" + MES[d.getUTCMonth()] + "-" + String(d.getUTCFullYear()).slice(2); };
+const fmtN = (n, dec=0) => n.toLocaleString("es-AR", {minimumFractionDigits:dec, maximumFractionDigits:dec});
+const RESP = D.responsables;
+const respChip = r => `<span class="chip r-${esc(r)}">${esc(RESP[r] || r)}</span>`;
+
+const corte = toD(D.control.fecha_corte);
+const acuerdo = toD(D.fechas.acuerdo);
+const [H1, H2] = D.fechas.horizontes;
+const parseParadas = arr => arr.filter(p => p.desde && p.hasta).map(p => ({desde: toD(p.desde), hasta: toD(p.hasta), motivo: p.motivo}));
+let paradas = parseParadas(D.calendario.paradas);
+const enParada = d => paradas.some(p => d >= p.desde && d <= p.hasta);
+
+function horizonte(fin){ const n = diff(acuerdo, toD(fin)); return n <= H1 ? `0–${H1}` : n <= H2 ? `${H1+1}–${H2}` : `> ${H2}`; }
+function estado(it){
+  if (it.estado === "Hecho" || it.estado === "En curso") return it.estado;
+  const f = toD(it.fin);
+  if (f < corte) return "Vencido";
+  if (diff(corte, f) <= 14) return "Próximo";
+  return "Pendiente";
+}
+const ITEMS = [];
+D.frentes.forEach(f => f.items.forEach(it => { it._frente = f; it._h = horizonte(it.fin); it._e = estado(it); ITEMS.push(it); }));
+
+/* ---------- Línea crítica: rampa e IWP calculados ---------- */
+function calcularLinea(L, cal){
+  cal = cal || D.calendario;
+  const hhm = L.hh_total / L.metros;
+  const hhJornada = L.personas_cuadrilla * cal.horas_jornada;
+  const mJornada = hhJornada / hhm;
+  const rampa = L.rampa.map(r => ({desde: toD(r.desde), n: r.cuadrillas})).sort((a,b) => a.desde - b.desde);
+  const crews = d => { if (enParada(d)) return 0; let n = 0; rampa.forEach(r => { if (d >= r.desde) n = r.n; }); return n; };
+  const rest = {}; L.lineas.forEach(l => rest[l.id] = l.metros);
+  const prog = {}; L.lineas.forEach(l => prog[l.id] = 0);
+  const cont = {}; L.lineas.forEach(l => cont[l.id] = 0);
+  const iwps = []; const slots = []; const curva = []; const tramos = [];
+  const T = L.tramo_m;
+  function cerrarTramo(w, d, final){
+    while (w.hecho - w.nTr * T >= T - 1e-6 || (final && w.hecho - w.nTr * T > 1e-6)){
+      const a = w.pk[0] + w.nTr * T, b = Math.min(a + T, w.pk[1]);
+      w.nTr += 1;
+      tramos.push({id: `${w.linea}-${String(Math.round(a/T)+1).padStart(2,"0")}`, iwp: w.id, linea: w.linea, pk: [a, b], m: b - a, fin: d});
+      if (b >= w.pk[1] - 1e-6) break;
+    }
+  }
+  const pilotoHasta = toD(L.iwp.piloto_hasta);
+  let d = toD(L.inicio), acum = 0, guard = 0;
+  function nuevoIWP(dia, slot){
+    const lin = L.lineas.slice().sort((a,b) => rest[b.id] - rest[a.id])[0];
+    if (!lin || rest[lin.id] <= 0.001) return null;
+    const tramos = dia <= pilotoHasta ? L.iwp.piloto_tramos : L.iwp.produccion_tramos;
+    const m = Math.min(tramos * L.tramo_m, rest[lin.id]);
+    const desde = prog[lin.id]; rest[lin.id] -= m; prog[lin.id] += m; cont[lin.id] += 1;
+    const w = {id: `${L.iwp_prefijo}-${lin.id}-${String(cont[lin.id]).padStart(3,"0")}`, cwp: `${L.cwp_prefijo}-${lin.id}`, linea: lin.id,
+      pk: [desde, desde + m], m, hh: m*hhm, jornadas: m/mJornada, falta: m/mJornada, inicio: null, fin: null, cuadrilla: slot+1, piloto: dia <= pilotoHasta, hecho: 0, nTr: 0};
+    iwps.push(w); return w;
+  }
+  while (guard++ < 800){
+    const n = crews(d);
+    let mDia = 0;
+    for (let k = 0; k < n; k++){
+      let cap = 1;
+      while (cap > 1e-9){
+        if (!slots[k]) { slots[k] = nuevoIWP(d, k); if (!slots[k]) break; }
+        const w = slots[k];
+        if (!w.inicio) w.inicio = d;
+        const usa = Math.min(cap, w.falta);
+        w.falta -= usa; cap -= usa; mDia += usa * mJornada; w.hecho += usa * mJornada;
+        if (w.falta <= 1e-9){ w.hecho = w.m; w.fin = d; cerrarTramo(w, d, true); slots[k] = null; } else cerrarTramo(w, d, false);
+      }
+    }
+    acum += mDia;
+    curva.push({d, n, m: mDia, acum: Math.min(acum, L.metros)});
+    const quedan = Object.values(rest).some(v => v > 0.001) || slots.some(s => s);
+    if (!quedan) break;
+    d = add(d, 1);
+  }
+  const fin = iwps.reduce((mx, w) => w.fin && w.fin > mx ? w.fin : mx, toD(L.inicio));
+  const lib = L.iwp.liberar_dias_antes;
+  iwps.forEach(w => { w.liberar = w.inicio ? add(w.inicio, -lib) : null; });
+  const completo = !Object.values(rest).some(v => v > 0.001) && !slots.some(s => s) && iwps.every(w => w.fin);
+  const pico = curva.reduce((m, c) => Math.max(m, c.n), 0);
+  const P = L.pruebas, area = Math.PI / 4 * Math.pow(P.di_mm / 1000, 2);
+  tramos.forEach(t => { t.ph = add(t.fin, P.dias_a_prueba); t.agua = area * t.m; });
+  iwps.forEach(w => { const ts = tramos.filter(t => t.iwp === w.id); w.tramos = ts.length;
+    w.phFin = ts.reduce((mx, t) => !mx || t.ph > mx ? t.ph : mx, null); w.precom = w.phFin ? add(w.phFin, P.dias_a_precom) : null; });
+  const finPruebas = iwps.reduce((mx, w) => w.precom && (!mx || w.precom > mx) ? w.precom : mx, null);
+  const jornadasCuadrilla = curva.reduce((s, c) => s + c.n, 0);
+  return {hhm, hhJornada, mJornada, iwps, curva, fin, jornadasCuadrilla, rampa, completo, pico, tramos, area, finPruebas,
+    margen: diff(fin, toD(L.fin_produccion)), margenPruebas: finPruebas ? diff(finPruebas, toD(L.fin_objetivo)) : null,
+    cuadrillaJornadasNecesarias: L.metros / mJornada};
+}
+const clone = o => JSON.parse(JSON.stringify(o));
+const SIM = {L: clone(D.linea_critica), cal: clone(D.calendario)};
+let LC = calcularLinea(SIM.L, SIM.cal);
+const margenCls = m => m < 0 ? "crit" : m <= 7 ? "warn" : "ok";
+const margenTxt = m => (m > 0 ? "+" : "") + m;
+
+/* ---------- Cabecera y pie ---------- */
+const O = D.obra;
+$("#subtitulo").textContent = `${O.codigo} · ${O.contrato} ${O.nombre} · ${O.cliente} · corte ${fmt(D.control.fecha_corte)}`;
+$("#pie").innerHTML = `Plan de Arranque ${esc(O.contrato)} · v${esc(D.control.version)} · corte ${fmt(D.control.fecha_corte)} · ${esc(D.control.autor)} · ${esc(D.control.nota)}`;
+
+/* ---------- Vista Resumen ---------- */
+function vResumen(){
+  const venc = ITEMS.filter(i => i._e === "Vencido"), prox = ITEMS.filter(i => i._e === "Próximo");
+  const hitosC = D.hitos.filter(h => toD(h.fecha) >= corte).slice(0, 7);
+  const dHasta = f => diff(corte, toD(f));
+  const L = SIM.L;
+  const cuentas = [
+    {n: dHasta("2026-10-29"), lbl: "días al vencimiento de cauciones y seguros", sub: "29-oct-26 · 57.1 y Schedule N", cls: "crit"},
+    {n: dHasta(L.inicio), lbl: "días al arranque de la línea HDPE", sub: `${fmt(L.inicio)} · piloto con 2 cuadrillas`, cls: "warn"},
+    {n: dHasta(L.fin_objetivo), lbl: "días al fin de la línea HDPE", sub: `${fmt(L.fin_objetivo)} · Schedule G`, cls: "acc"},
+    {n: LC ? margenTxt(LC.margen) : "—", lbl: "días de margen de la termofusión", sub: LC ? `fin calculado ${fmt(LC.fin)} contra ${fmt(L.fin_produccion)}${LC.margen<=7?" · sin colchón":""}` : "", cls: LC ? (margenCls(LC.margen)==="ok"?"acc":margenCls(LC.margen)) : "acc"}
+  ];
+  const porResp = {}; ITEMS.forEach(i => porResp[i.resp] = (porResp[i.resp]||0) + 1);
+  const porH = {}; ITEMS.forEach(i => porH[i._h] = (porH[i._h]||0) + 1);
+  const tot = ITEMS.length;
+  const bar = (obj, cls) => Object.keys(obj).map(k => `<div class="bar-row"><span>${cls ? respChip(k) : esc(k)+" días"}</span><div class="bar-track"><span style="width:${obj[k]/tot*100}%;background:var(${cls ? (k==="RT"?"--rt":k==="COMP"?"--comp":"--accent") : "--accent-2"})"></span></div><span class="mono">${obj[k]}</span></div>`).join("");
+  const alertas = venc.concat(prox).sort((a,b) => toD(a.fin) - toD(b.fin));
+  $("#v-resumen").innerHTML = `
+    <dl class="ficha">
+      <div><dt>Obra</dt><dd>${esc(O.codigo)} · ${esc(O.contrato)}</dd></div>
+      <div><dt>Cliente / ingeniería</dt><dd>${esc(O.cliente)} · ${esc(O.ingenieria)}</dd></div>
+      <div><dt>Sitio</dt><dd>${esc(O.sitio)}</dd></div>
+      <div><dt>Régimen</dt><dd>${esc(D.calendario.regimen)}</dd></div>
+      <div><dt>Parada</dt><dd>${paradas.map(p => `${fmt(p.desde)} a ${fmt(p.hasta)}`).join(", ")}</dd></div>
+      <div><dt>Objetivo del plan</dt><dd>${esc(L.nombre)} terminada el ${fmt(L.fin_objetivo)}</dd></div>
+    </dl>
+    <div class="cuenta">${cuentas.map(c => `<div class="panel ${c.cls}"><span class="n">${esc(c.n)}</span><span class="lbl">${esc(c.lbl)}</span><span class="small muted">${esc(c.sub)}</span></div>`).join("")}</div>
+    <div class="grid2">
+      <div class="panel">
+        <div class="section-title"><h2>Atención</h2><span class="muted small">vencidos y próximos 14 días al ${fmt(corte)}</span></div>
+        <ul class="list">${alertas.map(i => `<li><span class="date">${fmt(i.fin)}</span><span><strong>${esc(i.id)}</strong> ${esc(i.nombre)} <span class="muted small">· ${esc(i._frente.nombre)}</span></span><span class="chip e-${esc(i._e)}">${esc(i._e)}</span></li>`).join("") || `<li><span></span><span class="muted">Sin vencimientos en los próximos 14 días.</span></li>`}</ul>
+      </div>
+      <div class="panel">
+        <div class="section-title"><h2>Próximos hitos</h2></div>
+        <ul class="list">${hitosC.map(h => `<li><span class="date">${fmt(h.fecha)}</span><span>${esc(h.nombre)} <span class="muted small">· ${esc(h.fuente)}</span></span><span class="chip ${h.tipo==="contractual"?"e-Vencido":h.tipo==="objetivo"?"r-COMIN":"h-chip"}">${esc(h.tipo)}</span></li>`).join("")}</ul>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><div class="section-title"><h2>Quién tiene que hacer qué</h2><span class="muted small">${tot} entregables</span></div><div class="bars">${bar(porResp, true)}</div></div>
+      <div class="panel"><div class="section-title"><h2>Por horizonte</h2><span class="muted small">desde la fecha de acuerdo ${fmt(acuerdo)}</span></div><div class="bars">${bar(porH, false)}</div></div>
+    </div>`;
+}
+
+/* ---------- Vista Plan ---------- */
+const F = {h: "", r: "", e: "", q: ""};
+function vPlan(){
+  const opts = (arr, sel) => arr.map(([v,t]) => `<option value="${esc(v)}"${v===sel?" selected":""}>${esc(t)}</option>`).join("");
+  const hs = [...new Set(ITEMS.map(i => i._h))];
+  $("#v-plan").innerHTML = `
+    <div class="filters no-print">
+      <label for="f-h">Horizonte<select id="f-h">${opts([["","Todos"], ...hs.map(h => [h, h+" días"])], F.h)}</select></label>
+      <label for="f-r">Responsable<select id="f-r">${opts([["","Todos"], ...Object.keys(RESP).map(k => [k, RESP[k]])], F.r)}</select></label>
+      <label for="f-e">Estado<select id="f-e">${opts([["","Todos"],["Vencido","Vencido"],["Próximo","Próximo"],["Pendiente","Pendiente"],["En curso","En curso"],["Hecho","Hecho"]], F.e)}</select></label>
+      <label for="f-q">Buscar<input id="f-q" type="search" value="${esc(F.q)}" placeholder="termofusión, Schedule N…"></label>
+      <button class="btn" type="button" id="f-abrir">Abrir todo</button>
+      <button class="btn" type="button" id="f-cerrar">Cerrar todo</button>
+    </div>
+    <div id="plan-lista"></div>`;
+  ["h","r","e","q"].forEach(k => $("#f-"+k).addEventListener("input", ev => { F[k] = ev.target.value; listaPlan(); }));
+  $("#f-abrir").onclick = () => document.querySelectorAll("#plan-lista details").forEach(d => d.open = true);
+  $("#f-cerrar").onclick = () => document.querySelectorAll("#plan-lista details").forEach(d => d.open = false);
+  listaPlan();
+}
+function pasaFiltro(it){
+  if (F.h && it._h !== F.h) return false;
+  if (F.e && it._e !== F.e) return false;
+  if (F.r && it.resp !== F.r && !(it.tareas||[]).some(t => t.resp === F.r)) return false;
+  if (F.q){ const q = F.q.toLowerCase(); const txt = [it.id, it.nombre, it.fuente, ...(it.tareas||[]).map(t => t.nombre)].join(" ").toLowerCase(); if (!txt.includes(q)) return false; }
+  return true;
+}
+function listaPlan(){
+  const filtrando = F.h || F.r || F.e || F.q;
+  const html = D.frentes.map(f => {
+    const its = f.items.filter(pasaFiltro);
+    if (!its.length) return "";
+    const ini = f.items.reduce((m,i) => i.inicio < m ? i.inicio : m, "9999"), fin = f.items.reduce((m,i) => i.fin > m ? i.fin : m, "0000");
+    const nv = f.items.filter(i => i._e === "Vencido").length, np = f.items.filter(i => i._e === "Próximo").length;
+    return `<details class="frente"${filtrando ? " open" : ""}>
+      <summary><span class="fid">${esc(f.id)}</span><span class="fname">${esc(f.nombre)}</span>
+        <span class="fmeta"><span class="date">${fmt(ini)} → ${fmt(fin)}</span>${nv?`<span class="chip e-Vencido">${nv} vencido${nv>1?"s":""}</span>`:""}${np?`<span class="chip e-Próximo">${np} próximo${np>1?"s":""}</span>`:""}<span class="chip h-chip">${f.items.length} entregables</span></span></summary>
+      <div class="items"><table><thead><tr><th>ID</th><th>Entregable y tareas</th><th>Responsable</th><th>Inicio</th><th>Necesito para</th><th>Horizonte</th><th>Estado</th><th>Fuente</th></tr></thead><tbody>
+      ${its.map(i => `<tr><td class="mono small">${esc(i.id)}</td>
+        <td><span class="it-name">${esc(i.nombre)}</span>${i.propuesto?` <span class="prop">propuesto</span>`:""}
+          ${(i.tareas||[]).length ? `<ul class="tareas">${i.tareas.map(t => `<li>${esc(t.nombre)}${respChip(t.resp)}</li>`).join("")}</ul>` : ""}</td>
+        <td>${respChip(i.resp)}</td><td class="date">${fmt(i.inicio)}</td><td class="date"><strong>${fmt(i.fin)}</strong></td>
+        <td><span class="chip h-chip">${esc(i._h)}</span></td><td><span class="chip e-${esc(i._e)}">${esc(i._e)}</span></td><td class="src">${esc(i.fuente)}</td></tr>`).join("")}
+      </tbody></table></div></details>`;
+  }).join("");
+  $("#plan-lista").innerHTML = html || `<div class="panel muted">Ningún entregable cumple los filtros. Probá con «Todos» en horizonte o responsable.</div>`;
+}
+
+/* ---------- Vista Línea de tiempo ---------- */
+const abiertos = new Set(["F16"]);
+function vTiempo(){
+  const t0 = toD(D.fechas.tl_desde), t1 = toD(D.fechas.tl_hasta), span = diff(t0, t1);
+  const pct = d => Math.max(0, Math.min(100, diff(t0, typeof d === "string" ? toD(d) : d) / span * 100));
+  let wk = "", mes = "";
+  for (let d = new Date(t0); d <= t1; d = add(d, 7)) wk += `<span class="wk" style="left:${pct(d)}%">${d.getUTCDate()}</span>`;
+  for (let d = new Date(Date.UTC(t0.getUTCFullYear(), t0.getUTCMonth()+1, 1)); d <= t1; d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth()+1, 1)))
+    mes += `<span class="mes" style="left:${pct(d)}%">${MES[d.getUTCMonth()]} ${String(d.getUTCFullYear()).slice(2)}</span>`;
+  mes = `<span class="mes" style="left:0">${MES[t0.getUTCMonth()]} ${String(t0.getUTCFullYear()).slice(2)}</span>` + mes;
+  const over = paradas.map(p => `<div class="tl-over tl-receso" style="left:${pct(p.desde)}%;width:${pct(add(p.hasta,1))-pct(p.desde)}%" title="${esc(p.motivo)}"></div>`).join("")
+    + `<div class="tl-over tl-hoy" style="left:${pct(corte)}%" title="Corte ${fmt(corte)}"></div>`
+    + `<div class="tl-over tl-meta" style="left:${pct(SIM.L.fin_objetivo)}%" title="Fin línea HDPE ${fmt(SIM.L.fin_objetivo)}"></div>`;
+  const barra = (ini, fin, cls, title) => { const a = pct(ini), b = pct(add(toD(fin),1)); return `<span class="tl-bar ${cls}" style="left:${a}%;width:${Math.max(.6, b-a)}%" title="${esc(title)}"></span>`; };
+  const hitosRow = `<div class="tl-row"><div class="tl-lab f">Hitos</div><div class="tl-track">${over}${D.hitos.filter(h => toD(h.fecha) >= t0 && toD(h.fecha) <= t1).map(h => `<span class="tl-dot" style="left:${pct(h.fecha)}%;background:var(${h.tipo==="contractual"?"--crit":h.tipo==="objetivo"?"--accent":"--fg-3"})" title="${esc(fmt(h.fecha)+" · "+h.nombre)}"></span>`).join("")}</div></div>`;
+  const filas = D.frentes.map(f => {
+    const ini = f.items.reduce((m,i) => i.inicio < m ? i.inicio : m, "9999"), fin = f.items.reduce((m,i) => i.fin > m ? i.fin : m, "0000");
+    const ab = abiertos.has(f.id);
+    let h = `<div class="tl-row"><div class="tl-lab f" data-f="${esc(f.id)}" role="button" tabindex="0" aria-expanded="${ab}">${ab?"▾":"▸"} <span class="fid">${esc(f.id)}</span> ${esc(f.nombre)}</div><div class="tl-track">${over}${barra(ini, fin, "f", f.nombre)}${f.items.map(i => `<span class="tl-dot" style="left:${pct(i.fin)}%;background:var(${i._e==="Vencido"?"--crit":i._e==="Próximo"?"--warn":"--fg-3"});width:8px;height:8px;top:11px;transform:translateX(-4px) rotate(45deg)" title="${esc(i.id+" · "+i.nombre+" · "+fmt(i.fin))}"></span>`).join("")}</div></div>`;
+    if (ab) h += f.items.map(i => `<div class="tl-row"><div class="tl-lab i" title="${esc(i.nombre)}"><span class="fid">${esc(i.id)}</span> <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(i.nombre)}</span></div><div class="tl-track">${over}${barra(i.inicio, i.fin, "r-"+i.resp + (i._e==="Vencido"?" vencido":""), `${i.id} · ${fmt(i.inicio)} → ${fmt(i.fin)} · ${RESP[i.resp]}`)}</div></div>`).join("");
+    return h;
+  }).join("");
+  $("#v-tiempo").innerHTML = `
+    <div class="section-title"><h2>Línea de tiempo semanal</h2><span class="muted small">${fmt(t0)} a ${fmt(t1)} · clic en un frente para desplegarlo</span></div>
+    <div class="leyenda"><span><i class="sw" style="background:var(--accent)"></i>COMIN</span><span><i class="sw" style="background:var(--rt)"></i>RT / Worley</span><span><i class="sw" style="background:var(--comp)"></i>Compartido</span><span><i class="sw" style="background:var(--receso)"></i>Parada de fin de año</span><span><i class="sw" style="background:var(--rojo);width:3px"></i>Corte</span><span><i class="sw" style="border-left:2px dashed var(--fg-2);background:transparent;width:3px"></i>Fin línea HDPE</span></div>
+    <div class="tl-scroll"><div class="tl">
+      <div class="tl-row tl-head"><div class="tl-lab muted small">Frente / entregable</div><div class="tl-track">${mes}${wk}</div></div>
+      ${hitosRow}${filas}
+    </div></div>`;
+  document.querySelectorAll("#v-tiempo .tl-lab.f[data-f]").forEach(el => {
+    const tog = () => { const id = el.dataset.f; abiertos.has(id) ? abiertos.delete(id) : abiertos.add(id); vTiempo(); };
+    el.onclick = tog; el.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tog(); } };
+  });
+}
+
+/* ---------- Vista Línea crítica (v0.3.0: pestañas internas) ---------- */
+const SUBS = [["res","Resumen"],["prod","Producción"],["pru","Pruebas"],["iwp","IWP"],["rec","Recursos"],["pex","Cruces PEX"]];
+let subLinea = "res", modoProd = "semana";
+try { subLinea = localStorage.getItem("plan-sub-linea") || "res"; } catch(e){}
+const lunes = d => add(d, -((d.getUTCDay() + 6) % 7));
+const quincena = d => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() <= 15 ? 1 : 16));
+/* Agrupa la producción diaria por día, semana (lunes) o quincena (1–15 / 16–fin) */
+function produccion(L, R, modo){
+  const clave = modo === "dia" ? (d => d) : modo === "semana" ? lunes : quincena;
+  const rows = new Map();
+  const fila = d => { const k = iso(clave(d)); if (!rows.has(k)) rows.set(k, {desde: clave(d), hasta: d, nMax: 0, metros: 0, tf: 0, bridas: 0, ef: 0, ph: 0, agua: 0, jc: 0}); const r = rows.get(k); if (d > r.hasta) r.hasta = d; return r; };
+  R.curva.forEach(c => { const r = fila(c.d); r.metros += c.m; r.nMax = Math.max(r.nMax, c.n); r.jc += c.n; });
+  R.tramos.forEach(t => { const r = fila(t.fin); r.bridas += 1; r.ef += L.uniones.ef_por_brida; });
+  R.tramos.forEach(t => { const r = fila(t.ph); r.ph += 1; r.agua += t.agua; });
+  const out = [...rows.values()].sort((a, b) => a.desde - b.desde);
+  out.forEach(r => { r.tf = r.metros / L.cano_m; if (modo !== "dia") r.hasta = modo === "semana" ? add(r.desde, 6) : (r.desde.getUTCDate() === 1 ? add(r.desde, 14) : add(new Date(Date.UTC(r.desde.getUTCFullYear(), r.desde.getUTCMonth()+1, 1)), -1)); });
+  return out;
+}
+/* Máquinas necesarias por escalón de la rampa contra la oferta (Schedule F) */
+function maquinas(L, R){
+  const esc_ = [...new Set(R.curva.map(c => c.n))].filter(n => n > 0).sort((a, b) => a - b);
+  return {escalones: esc_, filas: L.maquinas.map(q => { const por = esc_.map(n => Math.ceil(n * q.coef - 1e-9)); const pico = Math.ceil(R.pico * q.coef - 1e-9);
+    let nota = q.nota || "";
+    if (q.id === "PH"){ const pw = Math.max(0, ...produccion(L, R, "semana").map(r => r.ph)); const porCal = Math.ceil(pw / 7 * L.pruebas.dias_a_prueba - 1e-9);
+      nota += ` · Según el calendario de pruebas (pico ${pw} por semana, ${L.pruebas.dias_a_prueba} días por prueba) alcanzan ${porCal}.`; }
+    return {...q, nota, por, pico, dif: pico - q.oferta}; })};
+}
+function chartProd(rows, alto){
+  const W = 900, H = alto || 240, pl = 56, pr = 16, pt = 14, pb = 40;
+  const mx = Math.max(1, ...rows.map(r => r.metros)); const top = Math.ceil(mx / 250) * 250;
+  const bw = (W - pl - pr) / rows.length;
+  const y = v => H - pb - v / top * (H - pt - pb);
+  let g = "";
+  for (let v = 0; v <= top; v += top / 4) g += `<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" class="axis" stroke-dasharray="2 4"/><text x="${pl-6}" y="${y(v)+4}" text-anchor="end">${fmtN(v)}</text>`;
+  rows.forEach((r, i) => { const x = pl + i * bw + bw * 0.15, w = bw * 0.7;
+    g += `<rect x="${x.toFixed(1)}" y="${y(r.metros).toFixed(1)}" width="${w.toFixed(1)}" height="${(H-pb-y(r.metros)).toFixed(1)}" fill="var(--accent)" rx="2"><title>${fmt(r.desde)}: ${fmtN(r.metros)} m · ${fmtN(r.tf)} termofusiones · ${r.bridas} bridas · ${r.ph} pruebas</title></rect>`;
+    if (r.ph) g += `<text x="${(x+w/2).toFixed(1)}" y="${(y(r.metros)-4).toFixed(1)}" text-anchor="middle" style="fill:var(--crit);font-weight:600">${r.ph}</text>`;
+    if (rows.length <= 26 || i % 2 === 0) g += `<text x="${(x+w/2).toFixed(1)}" y="${H-pb+14}" text-anchor="middle">${fmt(r.desde).slice(0,6)}</text>`; });
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Metros por período y pruebas hidráulicas">${g}<line x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}" class="axis"/>
+    <text x="${pl-40}" y="${(H-pb)/2}" text-anchor="middle" transform="rotate(-90 ${pl-40} ${(H-pb)/2})">metros</text></svg>`;
+}
+function chartPruebas(L, R){
+  const W = 900, H = 240, pl = 56, pr = 60, pt = 14, pb = 34;
+  const d0 = toD(L.inicio), dObj = toD(L.fin_objetivo), d1 = R.finPruebas && R.finPruebas > dObj ? add(R.finPruebas, 5) : add(dObj, 5), sp = diff(d0, d1);
+  const x = d => pl + diff(d0, d) / sp * (W - pl - pr), y = m => H - pb - m / L.metros * (H - pt - pb);
+  const inst = R.curva.map((c, i) => `${i?"L":"M"}${x(c.d).toFixed(1)},${y(c.acum).toFixed(1)}`).join("");
+  const ts = R.tramos.slice().sort((a, b) => a.ph - b.ph); let acc = 0;
+  const prob = ts.map((t, i) => { acc += t.m; return `${i?"L":"M"}${x(t.ph).toFixed(1)},${y(acc).toFixed(1)}`; }).join("");
+  let ejeX = ""; for (let d = new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth()+1, 1)); d <= d1; d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth()+1, 1))) ejeX += `<line x1="${x(d)}" x2="${x(d)}" y1="${pt}" y2="${H-pb}" class="axis"/><text x="${x(d)+3}" y="${H-pb+16}">${MES[d.getUTCMonth()]}</text>`;
+  const recs = paradas.map(p => `<rect x="${x(p.desde)}" y="${pt}" width="${x(add(p.hasta,1))-x(p.desde)}" height="${H-pt-pb}" fill="var(--receso)"/>`).join("");
+  const xo = x(dObj);
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Metros instalados y metros probados">${recs}${ejeX}
+    ${[0,7000,14000].map(m => `<line x1="${pl}" x2="${W-pr}" y1="${y(m)}" y2="${y(m)}" class="axis" stroke-dasharray="2 4"/><text x="${W-pr+6}" y="${y(m)+4}">${fmtN(m/1000)} km</text>`).join("")}
+    <path d="${inst}" fill="none" stroke="var(--accent)" stroke-width="2.5"/><path d="${prob}" fill="none" stroke="var(--ok)" stroke-width="2.5" stroke-dasharray="6 3"/>
+    <line x1="${xo}" x2="${xo}" y1="${pt}" y2="${H-pb}" stroke="var(--crit)" stroke-width="1.5"/><text x="${xo-6}" y="${pt+12}" text-anchor="end" style="fill:var(--crit)">fin ${fmt(dObj)}</text>
+    <line x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}" class="axis"/></svg>`;
+}
+function vLinea(){
+  const L = SIM.L, R = LC;
+  const W = 900, H = 260, pl = 60, pr = 58, pt = 16, pb = 34;
+  const d0 = toD(L.inicio), dObj = toD(L.fin_objetivo), d1 = R.fin > dObj ? add(R.fin, 5) : dObj, sp = Math.max(1, diff(d0, d1));
+  const x = d => pl + diff(d0, d) / sp * (W - pl - pr);
+  const maxN = Math.max(6, Math.ceil(R.pico/2)*2), yN = n => H - pb - n / maxN * (H - pt - pb), yM = m => H - pb - m / L.metros * (H - pt - pb);
+  const bw = (W - pl - pr) / sp;
+  let barras = "", linea = "";
+  { let pth = `M${x(d0).toFixed(1)},${H-pb}`; R.curva.filter(c => c.d <= d1).forEach(c => { const xa = x(c.d), xb = xa + bw; pth += `L${xa.toFixed(1)},${yN(c.n).toFixed(1)}L${xb.toFixed(1)},${yN(c.n).toFixed(1)}`; });
+    const ul = R.curva.filter(c => c.d <= d1).slice(-1)[0] || {d: d0}; pth += `L${(x(ul.d)+bw).toFixed(1)},${H-pb}Z`; barras = `<path d="${pth}" fill="var(--accent-soft)" stroke="none"/>`; }
+  linea = R.curva.filter(c => c.d <= d1).map((c,i) => `${i?"L":"M"}${x(c.d).toFixed(1)},${yM(c.acum).toFixed(1)}`).join("");
+  const ultimo = R.curva.filter(c => c.d <= d1).slice(-1)[0];
+  let ejeX = ""; for (let d = new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth()+1, 1)); d <= d1; d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth()+1, 1))) ejeX += `<line x1="${x(d)}" x2="${x(d)}" y1="${pt}" y2="${H-pb}" class="axis"/><text x="${x(d)+3}" y="${H-pb+16}">${MES[d.getUTCMonth()]}</text>`;
+  const recs = paradas.map(p => `<rect x="${x(p.desde)}" y="${pt}" width="${x(add(p.hasta,1))-x(p.desde)}" height="${H-pt-pb}" fill="var(--receso)"/>`).join("");
+  const ticksN = Array.from({length: maxN/2+1}, (_, i) => i*2).map(n => `<text x="${pl-8}" y="${yN(n)+4}" text-anchor="end">${n}</text>`).join("");
+  const ticksM = [0,7000,14000].map(m => `<line x1="${pl}" x2="${W-pr}" y1="${yM(m)}" y2="${yM(m)}" class="axis" stroke-dasharray="2 4"/><text x="${W-pr+6}" y="${yM(m)+4}">${fmtN(m/1000,0)} km</text>`).join("");
+  const xFP = x(toD(L.fin_produccion)), xFO = x(dObj);
+  const svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Cuadrillas por día y metros acumulados de la línea HDPE 800">
+    ${recs}${ejeX}${ticksM}${barras}
+    <line x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}" class="axis"/>
+    <path d="${linea}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+    ${ultimo?`<circle cx="${x(ultimo.d)}" cy="${yM(ultimo.acum)}" r="4" fill="var(--accent)"/>`:""}
+    <line x1="${xFP}" x2="${xFP}" y1="${pt}" y2="${H-pb}" stroke="var(--warn)" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="${xFP-6}" y="${H-pb-8}" text-anchor="end" style="fill:var(--warn)">fin termofusión ${fmt(L.fin_produccion)}</text>
+    <line x1="${xFO}" x2="${xFO}" y1="${pt}" y2="${H-pb}" stroke="var(--crit)" stroke-width="1.5"/>
+    ${ticksN}<text x="${pl-30}" y="${H/2}" text-anchor="middle" transform="rotate(-90 ${pl-30} ${H/2})">cuadrillas</text>
+  </svg>`;
+  const tot = R.iwps.length, pil = R.iwps.filter(w => w.piloto).length;
+  const hhIWP = R.iwps.filter(w => !w.piloto)[0];
+  const mx = L.restricciones, P = L.pruebas, U = L.uniones;
+  const nTr = R.tramos.length, aguaTot = R.tramos.reduce((s, t) => s + t.agua, 0), aguaTramo = R.area * L.tramo_m;
+  const mp = R.margenPruebas;
+  /* --- Resumen --- */
+  const pRes = `
+    <div class="kpis">
+      <div class="panel"><div class="k">Metros</div><div class="v">${fmtN(L.metros)}</div><div class="small muted">${L.lineas.map(l => `${esc(l.nombre)} ${fmtN(l.metros)} m`).join(" · ")}</div></div>
+      <div class="panel"><div class="k">HH por metro</div><div class="v">${fmtN(R.hhm,2)}</div><div class="small muted">${fmtN(L.hh_total)} HH ofertadas</div></div>
+      <div class="panel"><div class="k">Cuadrilla</div><div class="v">${fmtN(R.mJornada,1)} m</div><div class="small muted">por jornada · ${L.personas_cuadrilla} personas × ${D.calendario.horas_jornada} h = ${R.hhJornada} HH</div></div>
+      <div class="panel"><div class="k">IWP</div><div class="v">${tot}</div><div class="small muted">${pil} piloto (${L.iwp.piloto_tramos} tramo) · ${tot-pil} producción (${L.iwp.produccion_tramos} tramos${hhIWP?`, ≈ ${fmtN(hhIWP.hh)} HH`:""})</div></div>
+      <div class="panel"><div class="k">Fin termofusión</div><div class="v ${R.completo ? margenCls(R.margen) : "crit"}-txt">${R.completo ? fmt(R.fin) : "no termina"}</div><div class="small muted">margen ${margenTxt(R.margen)} días contra ${fmt(L.fin_produccion)}${R.margen<=7?" · sin colchón":""}</div></div>
+      <div class="panel"><div class="k">Fin pruebas y precom.</div><div class="v ${mp == null ? "crit" : margenCls(-mp)}-txt">${R.finPruebas ? fmt(R.finPruebas) : "—"}</div><div class="small muted">${mp == null ? "" : `${margenTxt(-mp)} días contra ${fmt(L.fin_objetivo)}`}</div></div>
+    </div>
+    <div class="panel">
+      <div class="section-title"><h2>Rampa de cuadrillas y avance</h2><span class="muted small">barras: cuadrillas por día · línea: metros acumulados · gris: parada</span></div>
+      ${svg}
+      <div class="leyenda">${L.rampa.map(r => `<span><span class="date">${fmt(r.desde)}</span> → <strong>${r.cuadrillas}</strong> cuadrillas</span>`).join("")}<span>${fmtN(R.jornadasCuadrilla)} jornadas de cuadrilla usadas · ${fmtN(R.cuadrillaJornadasNecesarias)} necesarias</span></div>
+    </div>`;
+  /* --- Producción --- */
+  const una = R.mJornada, porC = [["Día", 1], ["Semana (7 días)", 7], ["Quincena (15 días)", 15]];
+  const rows = produccion(L, R, modoProd);
+  const sum = k => rows.reduce((s, r) => s + r[k], 0);
+  const pProd = `
+    <div class="panel">
+      <div class="section-title"><h2>Rendimiento de una cuadrilla</h2><span class="muted small">${fmtN(una,1)} m por jornada (APU) · caño de ${L.cano_m} m · brida cada ${L.tramo_m} m · ${U.ef_por_brida} electrofusiones por brida · ${esc(U.fuente)}</span></div>
+      <div class="items"><table class="num" style="min-width:0"><thead><tr><th>Período</th><th class="n">Metros</th><th class="n">Termofusiones</th><th class="n">Bridas y pruebas</th><th class="n">Electrofusiones</th><th class="n">Agua de prueba (m³)</th></tr></thead><tbody>
+        ${porC.map(([n, dd]) => `<tr><td>${n}</td><td class="n">${fmtN(una*dd)}</td><td class="n">${fmtN(una*dd/L.cano_m,1)}</td><td class="n">${fmtN(una*dd/L.tramo_m,2)}</td><td class="n">${fmtN(una*dd/L.tramo_m*U.ef_por_brida,1)}</td><td class="n">${fmtN(una*dd/L.tramo_m*aguaTramo)}</td></tr>`).join("")}
+      </tbody></table></div>
+    </div>
+    <div class="panel">
+      <div class="section-title"><h2>Producción del plan</h2><span class="muted small">según la rampa · barras: metros · número rojo: pruebas hidráulicas del período</span>
+        <span class="seg no-print" role="group" aria-label="Agrupar por">${[["dia","Día"],["semana","Semana"],["quincena","Quincena"]].map(([k,t]) => `<button type="button" data-modo="${k}" aria-pressed="${modoProd===k}">${t}</button>`).join("")}</span></div>
+      ${chartProd(rows)}
+      <div class="iwp-table"><table class="num"><thead><tr><th>${modoProd === "dia" ? "Día" : modoProd === "semana" ? "Semana (lun–dom)" : "Quincena"}</th><th class="n">Cuadrillas</th><th class="n">Jornadas cuadr.</th><th class="n">Metros</th><th class="n">Termofusiones</th><th class="n">Bridas</th><th class="n">Electrofusiones</th><th class="n">Pruebas hidr.</th><th class="n">Agua (m³)</th></tr></thead><tbody>
+        ${rows.map(r => `<tr><td class="date">${fmt(r.desde)}${modoProd !== "dia" ? ` → ${fmt(r.hasta)}` : ""}</td><td class="n">${r.nMax || "—"}</td><td class="n">${fmtN(r.jc)}</td><td class="n">${fmtN(r.metros)}</td><td class="n">${fmtN(r.tf)}</td><td class="n">${r.bridas}</td><td class="n">${r.ef}</td><td class="n">${r.ph}</td><td class="n">${fmtN(r.agua)}</td></tr>`).join("")}
+        <tr class="tot"><td>Total</td><td class="n">pico ${R.pico}</td><td class="n">${fmtN(sum("jc"))}</td><td class="n">${fmtN(sum("metros"))}</td><td class="n">${fmtN(sum("tf"))}</td><td class="n">${sum("bridas")}</td><td class="n">${sum("ef")}</td><td class="n">${sum("ph")}</td><td class="n">${fmtN(sum("agua"))}</td></tr>
+      </tbody></table></div>
+      <p class="small muted">Termofusiones = metros ÷ ${L.cano_m} m (una unión por caño). Bridas: una al cierre de cada tramo entre bridas, incluida la del final de cada línea. Los períodos del final son solo pruebas.</p>
+    </div>`;
+  /* --- Pruebas --- */
+  const pPru = `
+    <div class="kpis">
+      <div class="panel"><div class="k">Pruebas hidráulicas</div><div class="v">${nTr}</div><div class="small muted">una por tramo entre bridas · ${esc(P.liberacion)}</div></div>
+      <div class="panel"><div class="k">Presión de prueba</div><div class="v">${fmtN(P.ph_bar,2)} bar</div><div class="small muted">HDPE 800 · PEX de cruces ${fmtN(P.ph_bar_pex,2)} bar</div></div>
+      <div class="panel"><div class="k">Agua por tramo</div><div class="v">${fmtN(aguaTramo)} m³</div><div class="small muted">DI ${fmtN(P.di_mm,1)} mm × ${L.tramo_m} m · total ${fmtN(aguaTot)} m³</div></div>
+      <div class="panel"><div class="k">Fin pruebas y precom.</div><div class="v ${mp == null ? "crit" : margenCls(-mp)}-txt">${R.finPruebas ? fmt(R.finPruebas) : "—"}</div><div class="small muted">${mp == null ? "" : `${margenTxt(-mp)} días contra ${fmt(L.fin_objetivo)}`}</div></div>
+    </div>
+    <div class="panel">
+      <div class="section-title"><h2>Metros instalados y metros probados</h2><span class="muted small">azul: termofusionado · verde punteado: con prueba hidráulica aprobada · rojo: fin de la línea</span></div>
+      ${chartPruebas(L, R)}
+      <p class="small muted">Prueba ${P.dias_a_prueba} días después de cerrar el tramo y precomisionado del IWP ${P.dias_a_precom} días después de su última prueba (supuestos, editables en Supuestos y simulación). ${esc(P.precom)}. Medición del PID: ${L.medicion.map(m => `${m.pct} % ${esc(m.etapa.toLowerCase())}`).join(" · ")}. Agua: el manejo después de la prueba es de COMIN, disposición a ≈ ${P.disposicion_km} km. ${esc(P.fuente)}.</p>
+    </div>
+    <div class="panel">
+      <div class="section-title"><h2>Calendario de pruebas por tramo</h2></div>
+      <div class="iwp-table"><table class="num"><thead><tr><th>Tramo</th><th>IWP</th><th>Progresiva (m)</th><th class="n">Metros</th><th>Tramo cerrado</th><th>Prueba hidr.</th><th class="n">Agua (m³)</th></tr></thead><tbody>
+        ${R.tramos.slice().sort((a,b) => a.ph - b.ph || (a.id < b.id ? -1 : 1)).map(t => `<tr><td class="mono small">${esc(t.id)}</td><td class="mono small">${esc(t.iwp)}</td><td class="mono small">${fmtN(t.pk[0])}–${fmtN(t.pk[1])}</td><td class="n">${fmtN(t.m)}</td><td class="date">${fmt(t.fin)}</td><td class="date ${t.ph > dObj ? "crit-txt" : ""}"><strong>${fmt(t.ph)}</strong></td><td class="n">${fmtN(t.agua)}</td></tr>`).join("")}
+      </tbody></table></div>
+    </div>`;
+  /* --- IWP --- */
+  const pIwp = `
+    <div class="panel">
+      <div class="section-title"><h2>Restricciones de cada IWP</h2><span class="muted small">se liberan ${L.iwp.liberar_dias_antes} días antes del inicio</span></div>
+      <div class="items"><table class="matrix" style="min-width:0"><thead><tr><th>Restricción</th><th>COMIN</th><th>RT / Worley</th></tr></thead><tbody>
+        ${mx.map(r => `<tr><td>${esc(r.nombre)}</td><td>${r.resp!=="RT"?(r.resp==="COMP"?"elabora / pide":"resuelve"):"—"}</td><td>${r.resp!=="COMIN"?(r.resp==="COMP"?"aprueba / emite":"resuelve"):"—"}</td></tr>`).join("")}
+      </tbody></table></div>
+    </div>
+    <div class="panel">
+      <div class="section-title"><h2>IWP calculados</h2><span class="muted small">tramo entre bridas ${L.tramo_m} m · se asignan a la cuadrilla libre, alternando líneas</span></div>
+      <div class="iwp-table"><table><thead><tr><th>IWP</th><th>CWP</th><th>Progresiva (m)</th><th>Metros</th><th>HH</th><th>Cuadr.</th><th>Liberar antes de</th><th>Inicio</th><th>Fin</th><th>Pruebas</th><th>Últ. prueba</th><th>Precom.</th><th>Tipo</th></tr></thead><tbody>
+        ${R.iwps.map(w => `<tr><td class="mono small">${esc(w.id)}</td><td class="mono small">${esc(w.cwp)}</td><td class="mono small">${fmtN(w.pk[0])}–${fmtN(w.pk[1])}</td><td class="mono">${fmtN(w.m)}</td><td class="mono">${fmtN(w.hh)}</td><td class="mono">C${w.cuadrilla}</td>
+          <td class="date ${w.liberar && w.liberar < corte ? "crit-txt" : w.liberar && diff(corte, w.liberar) <= 14 ? "warn-txt" : ""}"><strong>${w.liberar ? fmt(w.liberar) : "—"}</strong></td><td class="date">${w.inicio ? fmt(w.inicio) : "—"}</td><td class="date">${w.fin ? fmt(w.fin) : "no termina"}</td><td class="mono">${w.tramos}</td><td class="date">${w.phFin ? fmt(w.phFin) : "—"}</td><td class="date ${w.precom && w.precom > dObj ? "crit-txt" : ""}">${w.precom ? fmt(w.precom) : "—"}</td><td>${w.piloto?`<span class="chip e-Próximo">piloto</span>`:`<span class="chip h-chip">producción</span>`}</td></tr>`).join("")}
+      </tbody></table></div>
+    </div>`;
+  /* --- Recursos --- */
+  const MQ = maquinas(L, R), difs = MQ.filas.filter(q => q.dif > 0);
+  const pRec = `
+    ${difs.length ? `<p class="note"><strong>Distinto de la oferta:</strong> ${difs.map(q => `${esc(q.nombre)} necesita ${q.pico} y la oferta tiene ${q.oferta} (${q.dif > 0 ? "+" : ""}${q.dif})`).join(" · ")}. La oferta (Schedule F) es para todo el contrato, así que la diferencia real puede ser mayor.</p>` : `<p class="small muted">Todas las máquinas alcanzan con lo ofertado.</p>`}
+    <div class="panel">
+      <div class="section-title"><h2>Máquinas necesarias para el plan</h2><span class="muted small">${esc(L.maquinas_fuente)}</span></div>
+      <div class="items"><table class="num"><thead><tr><th>Máquina</th><th>Criterio</th><th></th>${MQ.escalones.map(n => `<th class="n">${n} cuadr.</th>`).join("")}<th class="n">Pico</th><th class="n">Oferta</th><th class="n">Diferencia</th></tr></thead><tbody>
+        ${MQ.filas.map(q => `<tr class="${q.dif > 0 ? "dif" : ""}"><td><strong>${esc(q.nombre)}</strong>${q.nota ? `<br><span class="small muted">${esc(q.nota)}</span>` : ""}</td><td class="small">${esc(q.base)}${q.origen === "Oferta" ? ` · ${fmtN(q.coef,2)}` : ""}</td><td>${oChip(q.origen)}</td>${q.por.map(v => `<td class="n">${v}</td>`).join("")}<td class="n"><strong>${q.pico}</strong></td><td class="n">${q.oferta}</td><td class="n ${q.dif > 0 ? "crit-txt" : "ok-txt"}"><strong>${q.dif > 0 ? "+" + q.dif : q.dif === 0 ? "=" : q.dif}</strong></td></tr>`).join("")}
+      </tbody></table></div>
+    </div>
+    <div class="panel">
+      <div class="section-title"><h2>Personal directo</h2><span class="muted small">${esc(L.cuadrilla_tipo.fuente)}</span></div>
+      <div class="items"><table class="num" style="min-width:0"><thead><tr><th>Oficio</th><th class="n">Por cuadrilla</th>${MQ.escalones.map(n => `<th class="n">${n} cuadr.</th>`).join("")}</tr></thead><tbody>
+        ${L.cuadrilla_tipo.roles.map(r => `<tr><td>${esc(r.rol)}</td><td class="n">${fmtN(r.cant,2)}</td>${MQ.escalones.map(n => `<td class="n">${fmtN(r.cant*n,1)}</td>`).join("")}</tr>`).join("")}
+        <tr class="tot"><td>Total</td><td class="n">${L.personas_cuadrilla}</td>${MQ.escalones.map(n => `<td class="n">${n*L.personas_cuadrilla}</td>`).join("")}</tr>
+      </tbody></table></div>
+      <p class="small muted">Soldadores de termofusión calificados (ASTM F3190): ${fmtN(L.cuadrilla_tipo.roles.find(r => /soldador/i.test(r.rol))?.cant * R.pico || 0, 1)} en el pico, más el relevo del régimen rotativo.</p>
+    </div>`;
+  /* --- Cruces PEX --- */
+  const pPex = `
+    <div class="panel">
+      <div class="section-title"><h2>Cruces de vía</h2><span class="muted small">PEX 710 enterrado con camisa HDPE corrugada · A.2.1.22.2 · caños de 12 m por electrofusión (Q&amp;A 95)</span></div>
+      <div class="items"><table style="min-width:0"><thead><tr><th>IWP</th><th>Inicio</th><th>Fin</th><th>HH</th><th>Prueba hidr.</th><th>Presión</th></tr></thead><tbody>
+        ${L.cruces.map(c => `<tr><td class="mono small">${esc(L.iwp_prefijo)}-${esc(c.id)}</td><td class="date">${fmt(c.inicio)}</td><td class="date">${fmt(c.fin)}</td><td class="mono">${fmtN(c.hh)}</td><td class="date">${fmt(add(toD(c.fin), P.dias_a_prueba))}</td><td class="mono">${fmtN(P.ph_bar_pex,2)} bar</td></tr>`).join("")}
+      </tbody></table></div>
+      <p class="note">El PID dice «termofusión» para el PEX (págs. 394–395) y la Q&amp;A 95 dice electrofusión (propuesta I-42). Faltan los metros de PEX: el SOW habla de 1.200 m + 180 m por línea y el ítem de planta (A.2.1.22.3) tiene cantidad 0.</p>
+      <p class="note">Anclajes: la Q&amp;A N° 36 dice cada 38 m y el PID ≈ cada 200 m. Cambia el trabajo por metro y puede mover el rendimiento.</p>
+    </div>`;
+  const cuerpo = {res: pRes, prod: pProd, pru: pPru, iwp: pIwp, rec: pRec, pex: pPex};
+  $("#v-linea").innerHTML = `
+    <div class="section-title"><span class="eyebrow">${esc(L.frente)} · línea crítica del plan</span></div>
+    <div class="section-title"><h2>${esc(L.nombre)}</h2><span class="muted small">${esc(L.fuente)}</span></div>
+    <nav class="subtabs no-print" role="tablist" aria-label="Secciones de la línea">${SUBS.map(([k, t]) => `<button class="subtab" role="tab" type="button" data-sub="${k}" aria-selected="${subLinea===k}">${t}</button>`).join("")}</nav>
+    ${SUBS.map(([k, t]) => `<div class="subpanel ${subLinea===k ? "" : "is-hidden"}" id="sub-${k}" role="tabpanel"><h3 class="eyebrow" style="font-size:14px">${t}</h3>${cuerpo[k]}</div>`).join("")}`;
+  document.querySelectorAll("#v-linea .subtab").forEach(b => b.onclick = () => { subLinea = b.dataset.sub; try { localStorage.setItem("plan-sub-linea", subLinea); } catch(e){} vLinea(); });
+  document.querySelectorAll("#v-linea [data-modo]").forEach(b => b.onclick = () => { modoProd = b.dataset.modo; vLinea(); });
+}
+
+
+/* ---------- Vista Supuestos y simulación ---------- */
+const BASE = {L: clone(D.linea_critica), cal: clone(D.calendario)};
+const ORI = D.linea_critica.origen || {};
+const oChip = o => `<span class="chip o-${esc(o)}">${esc(o)}</span>`;
+function getP(path){ return path.split(".").reduce((o, k) => o == null ? o : o[k], SIM); }
+function setP(path, v){ const ks = path.split("."); let o = SIM; ks.slice(0,-1).forEach(k => o = o[k]); o[ks[ks.length-1]] = v; }
+function baseP(path){ return path.split(".").reduce((o, k) => o == null ? o : o[k], BASE); }
+const PRM = [
+  {b: "cal", path: "cal.horas_jornada", lbl: "Horas por jornada", tipo: "number", min: 1, max: 24, step: 0.5, u: "h", o: ORI.horas_jornada, f: "Régimen de obra"},
+  {b: "cal", path: "cal.paradas.0.desde", lbl: "Parada de fin de año: desde", tipo: "date", o: ORI.parada, f: "15 días, a confirmar"},
+  {b: "cal", path: "cal.paradas.0.hasta", lbl: "Parada de fin de año: hasta", tipo: "date", o: ORI.parada, f: "15 días, a confirmar"},
+  {b: "cal", path: "L.inicio", lbl: "Arranque de la línea", tipo: "date", o: ORI.inicio, f: "Acordado 20-oct (lunes)"},
+  {b: "cal", path: "L.fin_produccion", lbl: "Fin de termofusión (meta)", tipo: "date", o: ORI.fin_produccion, f: "Deja 15 días a pruebas"},
+  {b: "cal", path: "L.fin_objetivo", lbl: "Fin de la línea", tipo: "date", o: ORI.fin_objetivo, f: "Schedule G · pág. 529"},
+  {b: "cua", path: "L.metros", lbl: "Metros de línea", tipo: "number", min: 1, step: 1, u: "m", o: ORI.metros, f: "A.2.1.22.1 · pág. 442"},
+  {b: "cua", path: "L.hh_total", lbl: "HH totales de la partida", tipo: "number", min: 1, step: 1, u: "HH", o: ORI.hh_total, f: "A.2.1.22.1 · pág. 442"},
+  {b: "cua", path: "L.personas_cuadrilla", lbl: "Personas por cuadrilla", tipo: "number", min: 1, max: 40, step: 1, u: "pers.", o: ORI.personas_cuadrilla, f: "APU · pág. 579"},
+  {b: "iwp", path: "L.tramo_m", lbl: "Tramo entre bridas", tipo: "number", min: 1, step: 1, u: "m", o: ORI.tramo_m, f: "PID · brida cada 198 m"},
+  {b: "iwp", path: "L.iwp.piloto_tramos", lbl: "Tramos por IWP piloto", tipo: "number", min: 1, max: 10, step: 1, u: "tramos", o: ORI.iwp, f: "Acordado 20-oct"},
+  {b: "iwp", path: "L.iwp.piloto_hasta", lbl: "Último día de IWP piloto", tipo: "date", o: ORI.iwp, f: "Antes de la parada"},
+  {b: "iwp", path: "L.iwp.produccion_tramos", lbl: "Tramos por IWP de producción", tipo: "number", min: 1, max: 10, step: 1, u: "tramos", o: ORI.iwp, f: "Acordado 20-oct"},
+  {b: "iwp", path: "L.iwp.liberar_dias_antes", lbl: "Liberar IWP antes del inicio", tipo: "number", min: 0, max: 60, step: 1, u: "días", o: ORI.iwp, f: "Práctica AWP"},
+  {b: "iwp", path: "L.pruebas.dias_a_prueba", lbl: "Tramo cerrado → prueba hidráulica", tipo: "number", min: 0, max: 30, step: 1, u: "días", o: ORI.dias_pruebas, f: "Llenado, estabilización y prueba"},
+  {b: "iwp", path: "L.pruebas.dias_a_precom", lbl: "Última prueba del IWP → precomisionado", tipo: "number", min: 0, max: 30, step: 1, u: "días", o: ORI.dias_pruebas, f: "Carga en Smart Completion"}
+];
+function cambios(){
+  let n = PRM.filter(p => String(getP(p.path)) !== String(baseP(p.path))).length;
+  if (JSON.stringify(SIM.L.rampa) !== JSON.stringify(BASE.L.rampa)) n++;
+  return n;
+}
+function prmRow(p, i){
+  const v = getP(p.path), cam = String(v) !== String(baseP(p.path));
+  const attrs = p.tipo === "number" ? `min="${p.min ?? ""}" max="${p.max ?? ""}" step="${p.step ?? 1}" inputmode="decimal"` : "";
+  return `<div class="prm"><label class="lbl" for="prm-${i}">${esc(p.lbl)}${p.u ? ` (${esc(p.u)})` : ""}<small>${esc(p.f)}</small></label>
+    <input id="prm-${i}" data-i="${i}" type="${p.tipo}" value="${esc(v)}" ${attrs} class="${cam ? "cambiado" : ""}">${oChip(p.o || "Supuesto")}</div>`;
+}
+const calcRow = (lbl, val, sub) => `<div class="prm"><span class="lbl">${esc(lbl)}<small>${esc(sub)}</small></span><span class="calc">${val}</span>${oChip("Calculado")}</div>`;
+function etapas(){
+  const L = SIM.L, p = paradas[0], R = LC;
+  const e = [{n: "Piloto", d: toD(L.inicio), h: toD(L.iwp.piloto_hasta), q: `IWP de ${L.iwp.piloto_tramos} tramo(s); primer tramo con prueba hidráulica`}];
+  if (p) e.push({n: "Parada", d: p.desde, h: p.hasta, q: p.motivo});
+  e.push({n: "Producción", d: p ? add(p.hasta, 1) : add(toD(L.iwp.piloto_hasta), 1), h: R.completo ? R.fin : null, q: `IWP de ${L.iwp.produccion_tramos} tramo(s); rampa hasta ${R.pico} cuadrillas`});
+  e.push({n: "Pruebas y entrega", d: R.completo ? add(R.fin, 1) : null, h: toD(L.fin_objetivo), q: "Pruebas hidráulicas por tramo, precomisionado y dossier"});
+  return e;
+}
+function simKpis(){
+  const R = LC, L = SIM.L, n = cambios();
+  const bar = $("#sim-bar"); if (!bar) return;
+  bar.className = "sim-bar" + (n ? " activa" : "");
+  bar.innerHTML = `<span><strong>${n ? "Simulación activa" : "Valores del plan"}</strong> <span class="muted small">${n ? `${n} valor${n>1?"es":""} cambiado${n>1?"s":""} · no se guarda; las otras vistas muestran la simulación` : "cambiá cualquier valor para simular; nada se guarda"}</span></span>
+    <button class="btn primario no-print" type="button" id="sim-reset" ${n ? "" : "disabled"}>Restablecer valores del plan</button>`;
+  $("#sim-reset").onclick = () => { SIM.L = clone(BASE.L); SIM.cal = clone(BASE.cal); recalcular(true); };
+  const m = R.completo ? R.margen : null;
+  $("#sim-kpis").innerHTML = `
+    <div class="panel"><div class="k">Fin de termofusión</div><div class="v ${R.completo ? margenCls(m) : "crit"}-txt">${R.completo ? fmt(R.fin) : "no termina"}</div><div class="small muted">meta ${fmt(L.fin_produccion)}</div></div>
+    <div class="panel"><div class="k">Margen</div><div class="v ${R.completo ? margenCls(m) : "crit"}-txt">${R.completo ? margenTxt(m) + " d" : "—"}</div><div class="small muted">${R.completo ? (m < 0 ? "no llega a la meta" : m <= 7 ? "sin colchón" : "con colchón") : "revisá la rampa"}</div></div>
+    <div class="panel"><div class="k">Jornadas de cuadrilla</div><div class="v">${fmtN(R.cuadrillaJornadasNecesarias)}</div><div class="small muted">necesarias · ${fmtN(R.jornadasCuadrilla)} usadas</div></div>
+    <div class="panel"><div class="k">Pico de cuadrillas</div><div class="v">${R.pico}</div><div class="small muted">${R.pico * L.personas_cuadrilla} personas directas</div></div>
+    <div class="panel"><div class="k">IWP</div><div class="v">${R.iwps.length}</div><div class="small muted">1.° a liberar ${R.iwps[0] && R.iwps[0].liberar ? fmt(R.iwps[0].liberar) : "—"}</div></div>`;
+  $("#sim-calc").innerHTML = calcRow("HH por metro", fmtN(R.hhm, 3), "HH totales / metros")
+    + calcRow("HH por jornada de cuadrilla", fmtN(R.hhJornada, 1), "personas × horas")
+    + calcRow("Rendimiento por cuadrilla", fmtN(R.mJornada, 1) + " m", "por jornada (oferta: 35,7 m)")
+    + calcRow("HH por IWP de producción", fmtN(L.tramo_m * L.iwp.produccion_tramos * R.hhm), `${fmtN(L.tramo_m * L.iwp.produccion_tramos)} m · guía CII 500–1.000 HH`);
+  $("#sim-etapas").innerHTML = etapas().map(e => `<tr><td><strong>${esc(e.n)}</strong></td><td class="date">${e.d ? fmt(e.d) : "—"}</td><td class="date">${e.h ? fmt(e.h) : "—"}</td><td class="mono">${e.d && e.h ? diff(e.d, e.h) + 1 : "—"}</td><td class="small muted">${esc(e.q)}</td></tr>`).join("");
+}
+function rampaRows(){
+  const b = BASE.L.rampa;
+  $("#sim-rampa").innerHTML = SIM.L.rampa.map((r, i) => `<tr>
+    <td><input type="date" id="rmp-d-${i}" data-r="${i}" data-k="desde" value="${esc(r.desde)}" class="${b[i] && b[i].desde === r.desde ? "" : "cambiado"}"></td>
+    <td><input type="number" id="rmp-n-${i}" data-r="${i}" data-k="cuadrillas" min="0" max="30" step="1" value="${esc(r.cuadrillas)}" class="${b[i] && b[i].cuadrillas === r.cuadrillas ? "" : "cambiado"}"></td>
+    <td class="no-print"><button class="btn mini" type="button" data-del="${i}" ${SIM.L.rampa.length < 2 ? "disabled" : ""}>Quitar</button></td></tr>`).join("");
+  document.querySelectorAll("#sim-rampa input").forEach(el => el.addEventListener("change", () => {
+    const r = SIM.L.rampa[+el.dataset.r]; if (!el.value) return;
+    r[el.dataset.k] = el.dataset.k === "cuadrillas" ? Math.max(0, Math.round(+el.value)) : el.value;
+    SIM.L.rampa.sort((a, c) => a.desde < c.desde ? -1 : 1); recalcular(true);
+  }));
+  document.querySelectorAll("#sim-rampa [data-del]").forEach(el => el.onclick = () => { SIM.L.rampa.splice(+el.dataset.del, 1); recalcular(true); });
+}
+function vSupuestos(){
+  const L = SIM.L, ct = L.cuadrilla_tipo, cr = L.cruces_rendimiento;
+  const bloque = b => PRM.map((p, i) => p.b === b ? prmRow(p, i) : "").join("");
+  $("#v-supuestos").innerHTML = `
+    <div class="section-title"><h2>Supuestos y simulación</h2><span class="muted small">todo lo que está detrás del cálculo de la línea HDPE 800, con su origen</span></div>
+    <div id="sim-bar" class="sim-bar"></div>
+    <div class="kpis" id="sim-kpis"></div>
+    <div class="leyenda">${oChip("Contrato")} lo fija el contrato ${oChip("Oferta")} sale de la oferta (APU, cómputo) ${oChip("Supuesto")} criterio de obra, se puede discutir ${oChip("Calculado")} resultado</div>
+    <div class="bloques">
+      <div class="panel"><div class="section-title"><h2>1. Calendario y fechas</h2></div>${bloque("cal")}</div>
+      <div class="panel"><div class="section-title"><h2>2. Cuadrilla tipo y rendimiento</h2></div>${bloque("cua")}<div id="sim-calc"></div></div>
+      <div class="panel"><div class="section-title"><h2>3. Etapas y rampa de cuadrillas</h2></div>
+        <div class="items"><table style="min-width:0"><thead><tr><th>Etapa</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Qué se hace</th></tr></thead><tbody id="sim-etapas"></tbody></table></div>
+        <div class="section-title" style="margin-top:14px"><h3 style="font-size:18px">Rampa</h3>${oChip(ORI.rampa || "Supuesto")}<span class="muted small">cuadrillas activas desde cada fecha (0 = sin trabajo)</span></div>
+        <div class="items"><table class="rampa-tab" style="min-width:0"><thead><tr><th>Desde</th><th>Cuadrillas</th><th class="no-print"></th></tr></thead><tbody id="sim-rampa"></tbody></table></div>
+        <button class="btn no-print" type="button" id="sim-add" style="margin-top:8px">Agregar escalón</button>
+        <div style="margin-top:14px">${bloque("iwp")}</div>
+      </div>
+      <div class="panel"><div class="section-title"><h2>4. Composición, medición y cruces</h2>${oChip("Oferta")}</div>
+        <div class="items"><table style="min-width:0"><thead><tr><th>Oficio</th><th>Coef. APU</th></tr></thead><tbody>
+          ${ct.roles.map(r => `<tr><td>${esc(r.rol)}</td><td class="mono">${fmtN(r.cant, 2)}</td></tr>`).join("")}
+          <tr><td><strong>Total cuadrilla</strong></td><td class="mono"><strong>${fmtN(ct.roles.reduce((a, r) => a + r.cant, 0), 1)}</strong></td></tr></tbody></table></div>
+        <div class="items" style="margin-top:12px"><table style="min-width:0"><thead><tr><th>Equipo</th><th>Coef. APU</th><th>Unidad</th></tr></thead><tbody>
+          ${ct.equipos.map(e => `<tr><td>${esc(e.eq)}</td><td class="mono">${fmtN(e.cant, 2)}</td><td class="small">${esc(e.u)}</td></tr>`).join("")}</tbody></table></div>
+        <p class="small muted">${esc(ct.fuente)}</p>
+        <div class="items" style="margin-top:6px"><table style="min-width:0"><thead><tr><th>Medición y cobro</th><th>%</th><th>Fuente</th></tr></thead><tbody>
+          ${L.medicion.map(m => `<tr><td>${esc(m.etapa)}</td><td class="mono">${m.pct} %</td><td class="src">${esc(m.fuente)}</td></tr>`).join("")}</tbody></table></div>
+        <p class="small" style="margin-top:10px"><strong>Cruces de vía:</strong> ${cr.cantidad} cruces, ${fmtN(cr.hh_total)} HH, ${fmtN(cr.ea_dia, 2)} cruces por día (≈ ${fmtN(1/cr.ea_dia, 0)} días cada uno). <span class="muted">${esc(cr.fuente)}</span></p>
+      </div>
+    </div>`;
+  document.querySelectorAll("#v-supuestos .prm input").forEach(el => el.addEventListener("change", () => {
+    const p = PRM[+el.dataset.i]; if (el.value === "") { el.value = getP(p.path); return; }
+    let v = p.tipo === "number" ? +el.value : el.value;
+    if (p.tipo === "number"){ if (!isFinite(v) || v < (p.min ?? -Infinity)) { el.value = getP(p.path); return; } if (p.max != null && v > p.max) v = p.max; }
+    setP(p.path, v); el.classList.toggle("cambiado", String(v) !== String(baseP(p.path))); recalcular(false);
+  }));
+  $("#sim-add").onclick = () => { const u = SIM.L.rampa[SIM.L.rampa.length - 1]; SIM.L.rampa.push({desde: iso(add(toD(u.desde), 14)), cuadrillas: u.cuadrillas + 1}); recalcular(true); };
+  rampaRows(); simKpis();
+}
+function recalcular(redibujar){
+  paradas = parseParadas(SIM.cal.paradas);
+  LC = calcularLinea(SIM.L, SIM.cal);
+  window.PLAN.LC = LC;
+  vResumen(); vTiempo(); vLinea();
+  if (redibujar) vSupuestos(); else simKpis();
+}
+
+/* ---------- Pestañas, hash y tema ---------- */
+const VISTAS = ["resumen","plan","tiempo","linea","supuestos"];
+function mostrar(v){
+  if (!VISTAS.includes(v)) v = "resumen";
+  VISTAS.forEach(k => { $("#v-"+k).classList.toggle("is-hidden", k !== v); $("#tab-"+k).setAttribute("aria-selected", String(k === v)); });
+  try { history.replaceState(null, "", "#" + v); } catch(e){}
+}
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => mostrar(t.dataset.view)));
+const TEMAS = ["sistema","claro","oscuro"];
+let tema = "sistema";
+try { tema = localStorage.getItem("plan-tema") || "sistema"; } catch(e){}
+function aplicarTema(){
+  const r = document.documentElement;
+  if (tema === "claro") r.setAttribute("data-theme","light"); else if (tema === "oscuro") r.setAttribute("data-theme","dark"); else r.removeAttribute("data-theme");
+  $("#btn-tema").textContent = "Tema: " + tema;
+}
+$("#btn-tema").addEventListener("click", () => { tema = TEMAS[(TEMAS.indexOf(tema)+1) % 3]; try { localStorage.setItem("plan-tema", tema); } catch(e){} aplicarTema(); });
+
+window.PLAN = {D, ITEMS, LC, SIM, recalcular};   /* para la prueba automática */
+aplicarTema(); vResumen(); vPlan(); vTiempo(); vLinea(); vSupuestos();
+mostrar((location.hash || "#resumen").slice(1));
+})();
+</script>
+
+</body>
+</html>
